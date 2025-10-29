@@ -330,10 +330,33 @@ const [flareData, cementData] = await Promise.all([
   window.__GW = { viewer, startOrbit, stopOrbit, orbitalCenters };
 }
 
+// === Panel de información personalizado ===
+const infoContent = document.getElementById('infoContent');
+
+const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+handler.setInputAction((click) => {
+  const picked = viewer.scene.pick(click.position);
+  if (Cesium.defined(picked) && picked.id && picked.id.properties) {
+    const props = picked.id.properties;
+    const rows = Object.keys(props)
+      .map(k => {
+        let val = props[k];
+        if (val && val.getValue) val = val.getValue(); // si es Property
+        return `<tr><th>${k}</th><td>${val}</td></tr>`;
+      })
+      .join('');
+    infoContent.innerHTML = `<table>${rows}</table>`;
+  } else {
+    infoContent.innerHTML = "<em>Sin propiedades disponibles.</em>";
+  }
+}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  
 init();
 </script>
 </body>
 </html>
+
 
 
 
