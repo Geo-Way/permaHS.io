@@ -160,8 +160,8 @@ async function loadGeoJSON(url, svgUrl) {
 
 // Ejemplo de uso: carga con SVG local para evitar CORS
 const [flareData, cementData] = await Promise.all([
-  loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", "images/FireIcon.svg"),
-  loadGeoJSON("data/cement_plants.geojson", "images/FireIcon.svg") // puedes usar otro SVG
+  loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", "images/fire.png"),
+  loadGeoJSON("data/cement_plants.geojson", "images/fire.png") // puedes usar otro SVG
 ]);
 
 
@@ -301,6 +301,7 @@ init();
 </script>
 </body>
 </html>
+
 
 
 
