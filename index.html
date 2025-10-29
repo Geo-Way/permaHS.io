@@ -144,8 +144,8 @@ async function loadGeoJSON(url, svgUrl, color) {
 }
 
 // === Uso ===
-const fireSvg = "images/FireIcon.svg";
-const cementSvg = "images/CementIcon.svg";
+const fireSvg = "images/fire.png";
+const cementSvg = "images/fire.png";
 
 const [flareData, cementData] = await Promise.all([
   loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", fireSvg, Cesium.Color.RED),
@@ -290,6 +290,7 @@ init();
 </script>
 </body>
 </html>
+
 
 
 
