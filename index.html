@@ -14,6 +14,7 @@
     width: 100%; height: 100%; margin: 0; padding: 0; background: #0b0d11;
   }
 
+  /* === Panel lateral === */
   #controlPanel {
     position: absolute; top: 60px; left: 12px;
     background: rgba(18,20,24,0.95); color: #eee;
@@ -43,7 +44,7 @@
   #logo { position: absolute; left: 10px; bottom: 20px; height: 42px; z-index: 11; }
   #credits { position: absolute; right: 10px; bottom: 10px; color: #ddd; font-size: 11px; z-index: 11; }
 
-  /* === Panel de información === */
+  /* === Panel inferior derecho === */
   #infoPanel {
     position: absolute;
     right: 20px;
@@ -85,22 +86,43 @@
   }
 
   #closeInfoBtn:hover { color: #fff; }
+
+  /* === Animación de los íconos SVG === */
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+  }
+
+  .cesium-billboard {
+    animation: pulse 2s infinite;
+  }
 </style>
 </head>
 
 <body>
   <div id="cesiumContainer"></div>
 
+  <!-- Panel lateral de control -->
   <div id="controlPanel">
     <h3>GeoWay — Orbital Drone</h3>
     <strong>Hotspots permanentes</strong>
     <label><span>Metal Plants</span><input type="checkbox" id="flareLayer" checked></label>
     <label><span>Cement Plants</span><input type="checkbox" id="cementLayer" checked></label>
+
+    <hr style="border-color:#333;margin:8px 0;">
+    <strong>Ejemplos de vista</strong>
+    <select id="exampleSelect">
+      <option value="">Selecciona una región</option>
+      <option value="australia">Australia</option>
+      <option value="europa">Europa</option>
+      <option value="california">California</option>
+    </select>
   </div>
 
   <img id="logo" src="images/Logo5.png" alt="logo" />
   <div id="credits">© Cesium | © OpenStreetMap</div>
 
+  <!-- Panel de información -->
   <div id="infoPanel">
     <button id="closeInfoBtn" title="Cerrar">&times;</button>
     <h3>Detalles del Hotspot</h3>
@@ -108,10 +130,9 @@
   </div>
 
 <script>
-Cesium.Ion.defaultAccessToken = "your_access_token_here";
+Cesium.Ion.defaultAccessToken = "YOUR_TOKEN_HERE";
 
 async function init() {
-  // === Viewer ===
   const viewer = new Cesium.Viewer("cesiumContainer", {
     terrain: Cesium.Terrain.fromWorldTerrain(),
     baseLayerPicker: true,
@@ -122,13 +143,11 @@ async function init() {
 
   viewer.scene.globe.depthTestAgainstTerrain = false;
 
-  // === Referencias de panel ===
   const infoPanel = document.getElementById("infoPanel");
   const infoContent = document.getElementById("infoContent");
   const closeInfoBtn = document.getElementById("closeInfoBtn");
   closeInfoBtn.onclick = () => infoPanel.classList.remove("visible");
 
-  // === Función para cargar GeoJSON con icono SVG ===
   async function loadGeoJSON(url, svgUrl, color) {
     try {
       const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround: true });
@@ -137,7 +156,7 @@ async function init() {
         ent.point = undefined;
         ent.billboard = new Cesium.BillboardGraphics({
           image: svgUrl,
-          scale: 0.5,
+          scale: 0.6,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           color: color
@@ -152,13 +171,11 @@ async function init() {
 
   const fireSvg = "https://upload.wikimedia.org/wikipedia/commons/9/99/FireIcon.svg";
 
-  // === Carga los datasets ===
   const [flareData, cementData] = await Promise.all([
     loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", fireSvg, Cesium.Color.RED),
     loadGeoJSON("data/cement_plants.geojson", fireSvg, Cesium.Color.ORANGE)
   ]);
 
-  // === Mostrar / ocultar capas ===
   document.getElementById("flareLayer").onchange = e => {
     if (flareData) flareData.show = e.target.checked;
   };
@@ -166,7 +183,7 @@ async function init() {
     if (cementData) cementData.show = e.target.checked;
   };
 
-  // === Evento de clic ===
+  // === Click en punto GeoJSON ===
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
   handler.setInputAction(click => {
     const picked = viewer.scene.pick(click.position);
@@ -185,7 +202,19 @@ async function init() {
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  // === Cámara inicial ===
+  // === Ejemplos de cámara ===
+  document.getElementById("exampleSelect").addEventListener("change", e => {
+    const val = e.target.value;
+    if (val === "australia") {
+      viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(133.7751, -25.2744, 4000000) });
+    } else if (val === "europa") {
+      viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(10.0, 50.0, 4000000) });
+    } else if (val === "california") {
+      viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(-119.4179, 36.7783, 3000000) });
+    }
+  });
+
+  // === Posición inicial ===
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(-74.0, 4.0, 50000),
     orientation: { heading: Cesium.Math.toRadians(25), pitch: Cesium.Math.toRadians(-20), roll: 0 },
