@@ -3,141 +3,133 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GeoWay Orbital Drone Tour</title>
+<title>GeoWay Orbital Drone Tour — Editable</title>
 
-<!-- CesiumJS -->
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Cesium.js"></script>
-<link href="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
 <style>
-  html, body, #cesiumContainer {
-    width: 100%; height: 100%; margin: 0; padding: 0; background: #0b0d11;
-  }
-  #controlPanel {
-    position: absolute; top: 60px; left: 12px;
-    background: rgba(18,20,24,0.95); color: #eee;
-    padding: 12px; border-radius: 10px; width: 260px;
-    box-shadow: 0 6px 20px rgba(0,0,0,.6); z-index: 10; font-family: Arial, sans-serif;
-  }
-  #controlPanel h3 {
-    color: #ff6600; margin: 4px 0 8px 0; text-align: center;
-  }
-  #controlPanel label {
-    display: flex; align-items: center; justify-content: space-between;
-    margin: 6px 0; font-size: 13px;
-  }
-  #controlPanel select, input[type="number"], button {
-    width: 100%; padding: 6px; border-radius: 6px; border: 0; margin-top: 6px;
-  }
-  #controlPanel button {
-    margin-top: 8px; background: #ff6600; color: #fff; cursor: pointer;
-  }
-  #controlPanel button#stopBtn { background: #444; }
-  #logo { position: absolute; left: 10px; bottom: 20px; height: 42px; z-index: 11; }
-  #credits { position: absolute; right: 10px; bottom: 10px; color: #ddd; font-size: 11px; z-index: 11; }
+  html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:#0b0d11}
 
-  /* Panel de información */
+  #controlPanel{
+    position:absolute; top:60px; left:12px;
+    background: rgba(18,20,24,0.95); color:#eee;
+    padding:12px; border-radius:10px; width:260px;
+    box-shadow:0 6px 20px rgba(0,0,0,.6); z-index:10; font-family:Arial, sans-serif;
+  }
+  #controlPanel h3{color:#ff6600;margin:4px 0 8px 0;text-align:center}
+  #controlPanel label{display:flex;align-items:center;justify-content:space-between;margin:6px 0;font-size:13px}
+  #controlPanel input[type="checkbox"]{margin-right:8px}
+  #controlPanel select,input[type="number"]{width:100%;padding:6px;border-radius:6px;border:0;margin-top:6px}
+  #controlPanel button{margin-top:8px;width:100%;padding:8px;border-radius:6px;border:0;background:#ff6600;color:#fff;cursor:pointer}
+
   #infoPanel {
     position: absolute;
-    right: 20px;
-    bottom: 20px;
-    width: 300px;
-    max-height: 40%;
+    right: 12px;
+    top: 60px;
+    width: 280px;
+    max-height: 50%;
     overflow-y: auto;
-    background: rgba(18, 20, 24, 0.95);
+    background: rgba(18,20,24,0.95);
     color: #fff;
     font-family: Arial, sans-serif;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.6);
+    padding: 10px;
     z-index: 10;
-    display: none;
-    transition: all 0.3s ease;
   }
-  #infoPanel.visible { display: block; }
   #infoPanel h3 {
-    color: #ff6600; font-size: 15px; margin-bottom: 6px; text-align: center;
+    color: #ff6600;
+    font-size: 15px;
+    margin-bottom: 6px;
+    text-align: center;
   }
   #infoContent table {
-    width: 100%; border-collapse: collapse; font-size: 12px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
   }
   #infoContent th, #infoContent td {
-    border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 6px; text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 4px 6px;
+    text-align: left;
   }
-  #infoContent th { color: #ff9933; width: 40%; }
-  #closeInfoBtn {
-    position: absolute; top: 6px; right: 8px;
-    background: transparent; border: none; color: #aaa;
-    font-size: 18px; cursor: pointer; transition: color 0.2s ease;
+  #infoContent th {
+    color: #ff9933;
+    width: 40%;
   }
-  #closeInfoBtn:hover { color: #fff; }
+
+  #logo{position:absolute;left:10px;bottom:20px;z-index:11}
+  #credits{position:absolute;right:10px;bottom:10px;color:#ddd;font-size:11px;z-index:11}
 </style>
 </head>
 
 <body>
-  <div id="cesiumContainer"></div>
+<div id="cesiumContainer"></div>
 
-  <div id="controlPanel">
-    <h3>GeoWay — Orbital Drone</h3>
+<div id="controlPanel">
+  <h3>Anomalías Térmicas</h3>
 
-    <strong>Capas</strong>
-    <label><span>MODIS (EFFIS)</span><input type="checkbox" id="modisLayer" checked></label>
-    <label><span>VIIRS (EFFIS)</span><input type="checkbox" id="viirsLayer" checked></label>
+  <strong>Capas</strong>
+  <label><span>MODIS (EFFIS)</span><input type="checkbox" id="modisLayer" checked></label>
+  <label><span>VIIRS (EFFIS)</span><input type="checkbox" id="viirsLayer" checked></label>
 
-    <strong style="margin-top:8px;display:block">Hotspots permanentes</strong>
-    <label><span>Nonferrous Metal Plants</span><input type="checkbox" id="flareLayer" checked></label>
-    <label><span>Cement Plants</span><input type="checkbox" id="cementLayer" checked></label>
+  <strong style="margin-top:8px;display:block">Hotspots permanentes</strong>
+  <label><span>Nonferrous Metal Plants</span><input type="checkbox" id="flareLayer" checked></label>
+  <label><span>Cement Plants</span><input type="checkbox" id="cementLayer" checked></label>
 
-    <strong style="margin-top:8px;display:block">Ejemplos / Centros</strong>
-    <select id="exampleSelect">
-      <option value="california">California</option>
-      <option value="australia">Australia</option>
-      <option value="europa">Europa</option>
-    </select>
+  <strong style="margin-top:8px;display:block">Edificios 3D</strong>
+  <label><span>Edificios LOD</span><input type="checkbox" id="buildingsLayer" checked></label>
 
-    <label><span>Radio (m)</span><input id="radiusInput" type="number" value="300"></label>
-    <label><span>Duración (s)</span><input id="durationInput" type="number" value="30"></label>
-    <label><span>Amp. vertical (m)</span><input id="vAmpInput" type="number" value="30"></label>
+  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
 
-    <button id="startBtn">Iniciar órbita</button>
-    <button id="stopBtn">Detener órbita</button>
-  </div>
+  <strong>Ejemplos / Centros</strong>
+  <select id="exampleSelect">
+    <option value="california">California</option>
+    <option value="australia">Australia</option>
+    <option value="europa">Europa (Barcelona)</option>
+  </select>
 
-  <img id="logo" src="images/Logo5.png" alt="logo" />
-  <div id="credits">© Cesium | © OpenStreetMap</div>
+  <label style="margin-top:8px"><span>Radio (m)</span><input id="radiusInput" type="number" value="300" min="10" step="10"></label>
+  <label><span>Duración por vuelta (s)</span><input id="durationInput" type="number" value="30" min="4" step="1"></label>
+  <label><span>Amp. vertical (m)</span><input id="vAmpInput" type="number" value="30" min="0" step="1"></label>
 
-  <div id="infoPanel">
-    <button id="closeInfoBtn" title="Cerrar">&times;</button>
-    <h3>Detalles del Hotspot</h3>
-    <div id="infoContent"><em>Haz clic en un punto para ver los datos.</em></div>
-  </div>
+  <button id="startBtn">Iniciar órbita</button>
+  <button id="stopBtn" style="background:#444;color:#fff">Detener órbita</button>
+</div>
+
+<div id="infoPanel">
+  <h3>Detalles del Hotspot</h3>
+  <div id="infoContent">Haz clic en un punto para ver los datos.</div>
+</div>
+
+<img id="logo" src="images/Logo5.png" alt="logo" style="height:42px">
+<div id="credits">© Cesium | © OpenStreetMap</div>
 
 <script>
 Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZjA1NGQ3ZS0xYmViLTRkYjUtODgzNy0wYjZhN2RkOTc2NzMiLCJpZCI6NTc5ODMsImlhdCI6MTc2MTY1NjMzMn0.kP1vTCnx99T9mHM7psPv7wzS9hwLV3eKbKyvGYtY_kw";
 
 async function init() {
-  const viewer = new Cesium.Viewer("cesiumContainer", {
+  const viewer = new Cesium.Viewer('cesiumContainer', {
     terrain: Cesium.Terrain.fromWorldTerrain(),
     baseLayerPicker: true,
     geocoder: true,
     timeline: false,
     animation: false
   });
-
-  const infoPanel = document.getElementById("infoPanel");
-  const infoContent = document.getElementById("infoContent");
-  const closeInfoBtn = document.getElementById("closeInfoBtn");
-  closeInfoBtn.onclick = () => infoPanel.classList.remove("visible");
+  viewer.scene.globe.depthTestAgainstTerrain = false;
 
   // ---------- Edificios 3D ----------
   const buildings = await Cesium.createOsmBuildingsAsync();
   viewer.scene.primitives.add(buildings);
+  document.getElementById('buildingsLayer').onchange = e => buildings.show = e.target.checked;
 
   // ---------- MODIS / VIIRS ----------
   const today = new Date();
   const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
   const iso = d=>d.toISOString().split('T')[0];
   const dateRange = `${iso(yesterday)}/${iso(today)}`;
+
   const modis = viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
     url:'https://maps.effis.emergency.copernicus.eu/gwis',
     layers:'modis.hs',
@@ -148,54 +140,168 @@ async function init() {
     layers:'viirs.hs',
     parameters:{transparent:true, format:'image/png', time:dateRange}
   }));
+  document.getElementById('modisLayer').onchange = e => modis.show = e.target.checked;
+  document.getElementById('viirsLayer').onchange = e => viirs.show = e.target.checked;
 
   // ---------- Hotspots permanentes ----------
-  async function loadGeoJSON(url, svgUrl) {
+  let globalPulse = { scale: 1, alpha: 0.25 };
+  (function pulseLoop() {
+    const t = performance.now() / 1000;
+    globalPulse.scale = 1.0 + 0.08 * Math.sin(t * 2.5);
+    globalPulse.alpha = 0.25 * (0.6 + 0.4 * (0.5 + 0.5 * Math.cos(t * 1.6)));
+    requestAnimationFrame(pulseLoop);
+  })();
+
+  async function loadGeoJSON(url, svgUrl, color) {
     try {
-      const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround:true });
+      const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround: true });
       viewer.dataSources.add(ds);
+
       ds.entities.values.forEach(ent => {
+        ent.point = undefined;
         ent.billboard = new Cesium.BillboardGraphics({
           image: svgUrl,
-          scale: 0.4,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          scale: new Cesium.CallbackProperty(() => globalPulse.scale, false),
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+        });
+        ent.ellipse = new Cesium.EllipseGraphics({
+          semiMajorAxis: 40,
+          semiMinorAxis: 40,
+          height: 0,
+          material: new Cesium.ColorMaterialProperty(
+            new Cesium.CallbackProperty(() => color.withAlpha(globalPulse.alpha), false)
+          ),
+          outline: false
         });
       });
       return ds;
     } catch (e) {
-      console.error("Error al cargar GeoJSON", url, e);
+      console.error("GeoJSON load error", url, e);
       return null;
     }
   }
 
+  const fireSvg = "images/fire.png";
+  const cementSvg = "images/fire.png";
+
   const [flareData, cementData] = await Promise.all([
-    loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", "https://upload.wikimedia.org/wikipedia/commons/9/99/FireIcon.svg"),
-    loadGeoJSON("data/cement_plants.geojson", "https://upload.wikimedia.org/wikipedia/commons/9/99/FireIcon.svg")
+    loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", fireSvg, Cesium.Color.RED),
+    loadGeoJSON("data/cement_plants.geojson", cementSvg, Cesium.Color.ORANGE)
   ]);
 
-  // ---------- Click en entidad ----------
+  document.getElementById('flareLayer').onchange = e => { if(flareData) flareData.show = e.target.checked; };
+  document.getElementById('cementLayer').onchange = e => { if(cementData) cementData.show = e.target.checked; };
+
+  // ---------- Centros ----------
+  const orbitalCenters = {
+    california: { lon: -90.39587, lat: 29.99702, height: 80 },
+    australia:  { lon: 144.93447, lat:-37.82845, height: 80 },
+    europa:     { lon: 0.54355, lat: 40.57781, height: 300 }
+  };
+
+  // ---------- Órbita ----------
+  let orbitalState = { running: false, intervalId: null };
+
+  function drawOrbitCircle(center, radius) {
+    viewer.entities.removeById('orbitCircle');
+    viewer.entities.add({
+      id: 'orbitCircle',
+      position: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height),
+      ellipse: {
+        semiMajorAxis: radius,
+        semiMinorAxis: radius,
+        height: center.height,
+        material: Cesium.Color.ORANGE.withAlpha(0.18),
+        outline: true,
+        outlineColor: Cesium.Color.ORANGE
+      }
+    });
+  }
+
+  async function startOrbit(centerKey, params) {
+    const center = orbitalCenters[centerKey];
+    if (!center) return;
+    drawOrbitCircle(center, params.radius);
+
+    orbitalState.running = true;
+    const { radius, duration, vAmp } = params;
+    const steps = Math.max(36, Math.round(duration * 6));
+    const stepDuration = duration / steps;
+
+    await viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height + radius),
+      duration: 1.2
+    });
+
+    let step = 0;
+    orbitalState.intervalId = setInterval(() => {
+      if (!orbitalState.running) { clearInterval(orbitalState.intervalId); return; }
+      const angle = (2 * Math.PI * step) / steps;
+      const camLon = center.lon + (radius / 111000) * Math.cos(angle);
+      const camLat = center.lat + (radius / 111000) * Math.sin(angle);
+      const camHeight = center.height + vAmp * Math.sin(angle);
+      const heading = Math.atan2(center.lat - camLat, center.lon - camLon);
+
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(camLon, camLat, camHeight),
+        orientation: { heading, pitch: Cesium.Math.toRadians(-20) },
+        duration: stepDuration,
+        easingFunction: Cesium.EasingFunction.LINEAR_NONE
+      });
+
+      step = (step + 1) % steps;
+    }, stepDuration * 1000);
+  }
+
+  function stopOrbit() {
+    orbitalState.running = false;
+    if (orbitalState.intervalId) clearInterval(orbitalState.intervalId);
+    viewer.entities.removeById('orbitCircle');
+  }
+
+  // ---------- UI ----------
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const exampleSelect = document.getElementById('exampleSelect');
+  const radiusInput = document.getElementById('radiusInput');
+  const durationInput = document.getElementById('durationInput');
+  const vAmpInput = document.getElementById('vAmpInput');
+
+  startBtn.onclick = () => {
+    const key = exampleSelect.value;
+    stopOrbit();
+    startOrbit(key, {
+      radius: +radiusInput.value,
+      duration: +durationInput.value,
+      vAmp: +vAmpInput.value
+    });
+  };
+  stopBtn.onclick = stopOrbit;
+
+  // ---------- Panel de información ----------
+  const infoContent = document.getElementById('infoContent');
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-  handler.setInputAction(function (movement) {
-    const picked = viewer.scene.pick(movement.position);
+
+  handler.setInputAction(click => {
+    const picked = viewer.scene.pick(click.position);
     if (Cesium.defined(picked) && picked.id && picked.id.properties) {
       const props = picked.id.properties;
-      let rows = "";
-      for (let key in props) {
-        const val = props[key]?.getValue?.() ?? props[key];
-        rows += `<tr><th>${key}</th><td>${val}</td></tr>`;
-      }
+      const rows = Object.keys(props).map(k => {
+        let val = props[k];
+        if (val && val.getValue) val = val.getValue();
+        return `<tr><th>${k}</th><td>${val}</td></tr>`;
+      }).join('');
       infoContent.innerHTML = `<table>${rows}</table>`;
-      infoPanel.classList.add("visible");
     } else {
-      infoPanel.classList.remove("visible");
+      infoContent.innerHTML = "<em>Sin propiedades disponibles.</em>";
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  // ---------- Cámara inicial ----------
+  // ---------- Vista inicial ----------
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(-74.0, 4.0, 50000),
-    orientation: { heading: Cesium.Math.toRadians(25), pitch: Cesium.Math.toRadians(-20), roll:0 },
+    orientation: { heading: Cesium.Math.toRadians(25), pitch: Cesium.Math.toRadians(-20) },
     duration: 2
   });
 }
@@ -204,4 +310,3 @@ init();
 </script>
 </body>
 </html>
-
