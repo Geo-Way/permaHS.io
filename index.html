@@ -13,35 +13,42 @@
   html, body, #cesiumContainer {
     width: 100%; height: 100%; margin: 0; padding: 0; background: #0b0d11;
   }
+
   #controlPanel {
     position: absolute; top: 60px; left: 12px;
     background: rgba(18,20,24,0.95); color: #eee;
     padding: 12px; border-radius: 10px; width: 260px;
     box-shadow: 0 6px 20px rgba(0,0,0,.6); z-index: 10; font-family: Arial, sans-serif;
   }
+
   #controlPanel h3 {
     color: #ff6600; margin: 4px 0 8px 0; text-align: center;
   }
+
   #controlPanel label {
     display: flex; align-items: center; justify-content: space-between;
     margin: 6px 0; font-size: 13px;
   }
+
   #controlPanel select, input[type="number"], button {
     width: 100%; padding: 6px; border-radius: 6px; border: 0; margin-top: 6px;
   }
+
   #controlPanel button {
     margin-top: 8px; background: #ff6600; color: #fff; cursor: pointer;
   }
+
   #controlPanel button#stopBtn { background: #444; }
+
   #logo { position: absolute; left: 10px; bottom: 20px; height: 42px; z-index: 11; }
   #credits { position: absolute; right: 10px; bottom: 10px; color: #ddd; font-size: 11px; z-index: 11; }
 
-  /* Panel de información */
+  /* === Panel de información === */
   #infoPanel {
     position: absolute;
     right: 20px;
     bottom: 20px;
-    width: 300px;
+    width: 320px;
     max-height: 40%;
     overflow-y: auto;
     background: rgba(18, 20, 24, 0.95);
@@ -54,22 +61,29 @@
     display: none;
     transition: all 0.3s ease;
   }
+
   #infoPanel.visible { display: block; }
+
   #infoPanel h3 {
     color: #ff6600; font-size: 15px; margin-bottom: 6px; text-align: center;
   }
+
   #infoContent table {
     width: 100%; border-collapse: collapse; font-size: 12px;
   }
+
   #infoContent th, #infoContent td {
     border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 6px; text-align: left;
   }
+
   #infoContent th { color: #ff9933; width: 40%; }
+
   #closeInfoBtn {
     position: absolute; top: 6px; right: 8px;
     background: transparent; border: none; color: #aaa;
     font-size: 18px; cursor: pointer; transition: color 0.2s ease;
   }
+
   #closeInfoBtn:hover { color: #fff; }
 </style>
 </head>
@@ -79,28 +93,9 @@
 
   <div id="controlPanel">
     <h3>GeoWay — Orbital Drone</h3>
-
-    <strong>Capas</strong>
-    <label><span>MODIS (EFFIS)</span><input type="checkbox" id="modisLayer" checked></label>
-    <label><span>VIIRS (EFFIS)</span><input type="checkbox" id="viirsLayer" checked></label>
-
-    <strong style="margin-top:8px;display:block">Hotspots permanentes</strong>
-    <label><span>Nonferrous Metal Plants</span><input type="checkbox" id="flareLayer" checked></label>
+    <strong>Hotspots permanentes</strong>
+    <label><span>Metal Plants</span><input type="checkbox" id="flareLayer" checked></label>
     <label><span>Cement Plants</span><input type="checkbox" id="cementLayer" checked></label>
-
-    <strong style="margin-top:8px;display:block">Ejemplos / Centros</strong>
-    <select id="exampleSelect">
-      <option value="california">California</option>
-      <option value="australia">Australia</option>
-      <option value="europa">Europa</option>
-    </select>
-
-    <label><span>Radio (m)</span><input id="radiusInput" type="number" value="300"></label>
-    <label><span>Duración (s)</span><input id="durationInput" type="number" value="30"></label>
-    <label><span>Amp. vertical (m)</span><input id="vAmpInput" type="number" value="30"></label>
-
-    <button id="startBtn">Iniciar órbita</button>
-    <button id="stopBtn">Detener órbita</button>
   </div>
 
   <img id="logo" src="images/Logo5.png" alt="logo" />
@@ -116,6 +111,7 @@
 Cesium.Ion.defaultAccessToken = "your_access_token_here";
 
 async function init() {
+  // === Viewer ===
   const viewer = new Cesium.Viewer("cesiumContainer", {
     terrain: Cesium.Terrain.fromWorldTerrain(),
     baseLayerPicker: true,
@@ -124,63 +120,80 @@ async function init() {
     animation: false
   });
 
+  viewer.scene.globe.depthTestAgainstTerrain = false;
+
+  // === Referencias de panel ===
   const infoPanel = document.getElementById("infoPanel");
   const infoContent = document.getElementById("infoContent");
   const closeInfoBtn = document.getElementById("closeInfoBtn");
   closeInfoBtn.onclick = () => infoPanel.classList.remove("visible");
 
-  // ---------- Edificios 3D ----------
-  const buildings = await Cesium.createOsmBuildingsAsync();
-  viewer.scene.primitives.add(buildings);
-
-  // ---------- MODIS / VIIRS ----------
-  const today = new Date();
-  const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
-  const iso = d=>d.toISOString().split('T')[0];
-  const dateRange = `${iso(yesterday)}/${iso(today)}`;
-  const modis = viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
-    url:'https://maps.effis.emergency.copernicus.eu/gwis',
-    layers:'modis.hs',
-    parameters:{transparent:true, format:'image/png', time:dateRange}
-  }));
-  const viirs = viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
-    url:'https://maps.effis.emergency.copernicus.eu/gwis',
-    layers:'viirs.hs',
-    parameters:{transparent:true, format:'image/png', time:dateRange}
-  }));
-
-  // ---------- Hotspots permanentes ----------
-  async function loadGeoJSON(url, svgUrl) {
+  // === Función para cargar GeoJSON con icono SVG ===
+  async function loadGeoJSON(url, svgUrl, color) {
     try {
-      const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround:true });
+      const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround: true });
       viewer.dataSources.add(ds);
       ds.entities.values.forEach(ent => {
+        ent.point = undefined;
         ent.billboard = new Cesium.BillboardGraphics({
           image: svgUrl,
-          scale: 0.4,
+          scale: 0.5,
           verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          color: color
         });
       });
       return ds;
-    } catch (e) {
-      console.error("Error al cargar GeoJSON", url, e);
+    } catch (err) {
+      console.error("Error cargando GeoJSON:", url, err);
       return null;
     }
   }
 
+  const fireSvg = "https://upload.wikimedia.org/wikipedia/commons/9/99/FireIcon.svg";
+
+  // === Carga los datasets ===
   const [flareData, cementData] = await Promise.all([
-    loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", "https://upload.wikimedia.org/wikipedia/commons/9/99/FireIcon.svg"),
-    loadGeoJSON("data/cement_plants.geojson", "https://upload.wikimedia.org/wikipedia/commons/9/99/FireIcon.svg")
+    loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", fireSvg, Cesium.Color.RED),
+    loadGeoJSON("data/cement_plants.geojson", fireSvg, Cesium.Color.ORANGE)
   ]);
 
-  // ---------- Click en entidad ----------
+  // === Mostrar / ocultar capas ===
+  document.getElementById("flareLayer").onchange = e => {
+    if (flareData) flareData.show = e.target.checked;
+  };
+  document.getElementById("cementLayer").onchange = e => {
+    if (cementData) cementData.show = e.target.checked;
+  };
+
+  // === Evento de clic ===
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-  handler.setInputAction(function (movement) {
-    const picked = viewer.scene.pick(movement.position);
+  handler.setInputAction(click => {
+    const picked = viewer.scene.pick(click.position);
     if (Cesium.defined(picked) && picked.id && picked.id.properties) {
       const props = picked.id.properties;
       let rows = "";
       for (let key in props) {
-        const val = props[key]?.getValue?.() ?? props[key];
-        rows += `<tr><th>${key}</th><td>${val}</td></tr>
+        let val = props[key];
+        if (val && val.getValue) val = val.getValue();
+        rows += `<tr><th>${key}</th><td>${val}</td></tr>`;
+      }
+      infoContent.innerHTML = `<table>${rows}</table>`;
+      infoPanel.classList.add("visible");
+    } else {
+      infoPanel.classList.remove("visible");
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  // === Cámara inicial ===
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(-74.0, 4.0, 50000),
+    orientation: { heading: Cesium.Math.toRadians(25), pitch: Cesium.Math.toRadians(-20), roll: 0 },
+    duration: 2
+  });
+}
+
+init();
+</script>
+</body>
+</html>
