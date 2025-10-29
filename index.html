@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GeoWay Orbital Drone Tour — Editable</title>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Widgets/widgets.css" rel="stylesheet"/>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Cesium.js"></script>
+<style>
+  html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:#0b0d11}
+  #controlPanel{
+    position:absolute; top:60px; left:12px;
+    background: rgba(18,20,24,0.95); color:#eee;
+    padding:12px; border-radius:10px; width:260px;
+    box-shadow:0 6px 20px rgba(0,0,0,.6); z-index:10; font-family:Arial, sans-serif;
+  }
+  #controlPanel h3{color:#ff6600;margin:4px 0 8px 0;text-align:center}
+  #controlPanel label{display:flex;align-items:center;justify-content:space-between;margin:6px 0;font-size:13px}
+  #controlPanel input[type="checkbox"]{margin-right:8px}
+  #controlPanel select,input[type="number"]{width:100%;padding:6px;border-radius:6px;border:0;margin-top:6px}
+  #controlPanel button{margin-top:8px;width:100%;padding:8px;border-radius:6px;border:0;background:#ff6600;color:#fff;cursor:pointer}
+  #logo{position:absolute;left:10px;bottom:20px;z-index:11}
+  #credits{position:absolute;right:10px;bottom:10px;color:#ddd;font-size:11px;z-index:11}
+</style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+
+<div id="controlPanel">
+  <h3>GeoWay — Orbital Drone</h3>
+
+  <strong>Capas</strong>
+  <label><span>MODIS (EFFIS)</span><input type="checkbox" id="modisLayer" checked></label>
+  <label><span>VIIRS (EFFIS)</span><input type="checkbox" id="viirsLayer" checked></label>
+
+  <strong style="margin-top:8px;display:block">Hotspots permanentes</strong>
+  <label><span>Nonferrous Metal Plants</span><input type="checkbox" id="flareLayer" checked></label>
+  <label><span>Cement Plants</span><input type="checkbox" id="cementLayer" checked></label>
+
+  <strong style="margin-top:8px;display:block">Edificios 3D</strong>
+  <label><span>Edificios LOD</span><input type="checkbox" id="buildingsLayer" checked></label>
+
+  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
+
+  <strong>Ejemplos / Centros (editable en panel)</strong>
+  <select id="exampleSelect">
+    <option value="california">California (user point)</option>
+    <option value="australia">Australia (user point)</option>
+    <option value="europa">Europa (Barcelona)</option>
+  </select>
+
+  <label style="margin-top:8px"><span>Radio (m)</span><input id="radiusInput" type="number" value="300" min="10" step="10"></label>
+  <label><span>Duración por vuelta (s)</span><input id="durationInput" type="number" value="30" min="4" step="1"></label>
+  <label><span>Amp. vertical (m)</span><input id="vAmpInput" type="number" value="30" min="0" step="1"></label>
+
+  <button id="startBtn">Iniciar órbita</button>
+  <button id="stopBtn" style="background:#444;color:#fff">Detener órbita</button>
+</div>
+
+<img id="logo" src="images/Logo5.png" alt="logo" style="height:42px">
+<div id="credits">© Cesium | © OpenStreetMap</div>
+
+<script type="module">
+Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmYTlhNzk4Zi0zMjMyLTQzOTgtYjZjYS1jMzQ3N2E3NjZiZDkiLCJpZCI6NTc5ODMsImlhdCI6MTc2MTY1NjM1N30.JUevUvX8-6oDHmJ6VZyDvto3X_KBvNuMzkO0WR1a0qA'; // reemplaza con tu token
+
+async function init() {
+  const viewer = new Cesium.Viewer('cesiumContainer', {
+    terrain: Cesium.Terrain.fromWorldTerrain(),
+    baseLayerPicker: true,
+    geocoder: true,
+    timeline: false,
+    animation: false
+  });
+  viewer.scene.globe.depthTestAgainstTerrain = false;
+
+  // ---------- Edificios 3D ----------
+  const buildings = await Cesium.createOsmBuildingsAsync();
+  viewer.scene.primitives.add(buildings);
+  document.getElementById('buildingsLayer').onchange = e => buildings.show = e.target.checked;
+
+  // ---------- MODIS / VIIRS (EFFIS WMS) ----------
+  const today = new Date();
+  const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+  const iso = d=>d.toISOString().split('T')[0];
+  const dateRange = `${iso(yesterday)}/${iso(today)}`;
+
+  const modis = viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
+    url:'https://maps.effis.emergency.copernicus.eu/gwis',
+    layers:'modis.hs',
+    parameters:{transparent:true, format:'image/png', time:dateRange}
+  }));
+  const viirs = viewer.imageryLayers.addImageryProvider(new Cesium.WebMapServiceImageryProvider({
+    url:'https://maps.effis.emergency.copernicus.eu/gwis',
+    layers:'viirs.hs',
+    parameters:{transparent:true, format:'image/png', time:dateRange}
+  }));
+  document.getElementById('modisLayer').onchange = e => modis.show = e.target.checked;
+  document.getElementById('viirsLayer').onchange = e => viirs.show = e.target.checked;
+
+  // ---------- Hotspots permanentes (cargar y mantener) ----------
+  async function loadGeoJSON(url, color) {
+    try {
+      const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround:true });
+      viewer.dataSources.add(ds);
+      ds.entities.values.forEach(ent => {
+        ent.point = new Cesium.PointGraphics({ color: color, pixelSize: 8, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND });
+        ent.description = ent.properties && ent.properties.name ? ent.properties.name.getValue() : (ent.name || "Hotspot");
+      });
+      return ds;
+    } catch (e) { console.error('GeoJSON load error', url, e); return null; }
+  }
+
+  const [flareData, cementData] = await Promise.all([
+    loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", Cesium.Color.RED),
+    loadGeoJSON("data/cement_plants.geojson", Cesium.Color.ORANGE)
+  ]);
+  document.getElementById('flareLayer').onchange = e => { if(flareData) flareData.show = e.target.checked; };
+  document.getElementById('cementLayer').onchange = e => { if(cementData) cementData.show = e.target.checked; };
+
+  // ---------- Centros editables en código (fácil de localizar y editar) ----------
+  // Edita aquí si quieres otro centro/alturas predeterminadas.
+  const orbitalCenters = {
+    california: { lon: -90.39587, lat: 29.99702, height: 80 },   // punto que diste (user)
+    australia:  { lon: 144.93447, lat:-37.82845, height: 80 },   // punto que diste (user)
+    europa:     { lon:  0.54355,     lat: 40.57781,     height: 300 }    // Madrid (editable)
+  };
+
+  // ---------- Orbital logic (flyTo by small steps -> suave y estable) ----------
+  let orbitalState = {
+    running: false,
+    intervalId: null,
+    currentCenterKey: null,
+    circleEntityId: null,
+    centerMarkerId: null
+  };
+
+  function clearOrbitVisuals() {
+    if (orbitalState.circleEntityId) { viewer.entities.removeById(orbitalState.circleEntityId); orbitalState.circleEntityId = null; }
+    if (orbitalState.centerMarkerId) { viewer.entities.removeById(orbitalState.centerMarkerId); orbitalState.centerMarkerId = null; }
+  }
+
+  function drawOrbitCircle(center, radius) {
+    clearOrbitVisuals();
+    const circle = viewer.entities.add({
+      id: 'orbitCircle',
+      position: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height),
+      ellipse: {
+        semiMajorAxis: radius,
+        semiMinorAxis: radius,
+        height: center.height,
+        material: Cesium.Color.ORANGE.withAlpha(0.18),
+        outline: true,
+        outlineColor: Cesium.Color.ORANGE,
+        outlineWidth: 2
+      }
+    });
+    orbitalState.circleEntityId = 'orbitCircle';
+    const centerMarker = viewer.entities.add({
+      id: 'orbitCenter',
+      position: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height),
+      point: { pixelSize: 10, color: Cesium.Color.RED },
+      label: { text: 'Centro órbita', font:'12px sans-serif', fillColor: Cesium.Color.WHITE, style: Cesium.LabelStyle.FILL_AND_OUTLINE, outlineWidth:2, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, pixelOffset: new Cesium.Cartesian2(0,-8) }
+    });
+    orbitalState.centerMarkerId = 'orbitCenter';
+  }
+
+  // Steps-based orbit using flyTo small segments (stable with loaded tiles/entities)
+  async function startOrbit(centerKey, params) {
+    if (!orbitalCenters[centerKey]) { alert('Centro no definido'); return; }
+    const center = orbitalCenters[centerKey];
+    drawOrbitCircle(center, params.radius);
+
+    orbitalState.running = true;
+    orbitalState.currentCenterKey = centerKey;
+
+    // parameters
+    const radius = params.radius;       // meters
+    const duration = params.duration;   // seconds per full circle
+    const vAmp = params.vAmp;           // vertical amplitude meters
+    const steps = Math.max(36, Math.round(duration * 6)); // 6 steps/sec -> suficientemente suaves
+    const stepDuration = (duration / steps); // seconds per segment
+
+    // Ensure viewer is near the area before starting:
+    await viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(center.lon + 0.001, center.lat + 0.001, center.height + radius*0.6), duration: 1.2 });
+
+    let step = 0;
+    // Use setInterval which schedules flyTo in controlled cadence
+    orbitalState.intervalId = setInterval(() => {
+      if (!orbitalState.running) { clearInterval(orbitalState.intervalId); orbitalState.intervalId = null; return; }
+      const angle = (2 * Math.PI * step) / steps;
+      const camLon = center.lon + (radius/111000) * Math.cos(angle);
+      const camLat = center.lat + (radius/111000) * Math.sin(angle);
+      const camHeight = center.height + vAmp * Math.sin(angle * 1.0); // subida/descenso suave
+
+      // heading so camera looks to center:
+      const heading = Math.atan2(center.lat - camLat, center.lon - camLon);
+
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(camLon, camLat, camHeight),
+        orientation: { heading: heading, pitch: Cesium.Math.toRadians(-20), roll: 0 },
+        duration: stepDuration,
+        easingFunction: Cesium.EasingFunction.LINEAR_NONE
+      });
+
+      step = (step + 1) % steps;
+    }, stepDuration * 1000);
+  }
+
+  function stopOrbit() {
+    orbitalState.running = false;
+    if (orbitalState.intervalId) { clearInterval(orbitalState.intervalId); orbitalState.intervalId = null; }
+    clearOrbitVisuals();
+    orbitalState.currentCenterKey = null;
+  }
+
+  // ---------- UI wiring ----------
+  const exampleSelect = document.getElementById('exampleSelect');
+  const radiusInput = document.getElementById('radiusInput');
+  const durationInput = document.getElementById('durationInput');
+  const vAmpInput = document.getElementById('vAmpInput');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn  = document.getElementById('stopBtn');
+
+  startBtn.onclick = () => {
+    const key = exampleSelect.value;
+    if (!key) { alert('Selecciona un ejemplo'); return; }
+    // read params (validate)
+    const params = {
+      radius: Math.max(10, Number(radiusInput.value) || 300),
+      duration: Math.max(4, Number(durationInput.value) || 30),
+      vAmp: Math.max(0, Number(vAmpInput.value) || 30)
+    };
+    // if already running on same center, ignore
+    if (orbitalState.running && orbitalState.currentCenterKey === key) return;
+    stopOrbit(); // ensure clean state
+    startOrbit(key, params);
+  };
+
+  stopBtn.onclick = () => stopOrbit();
+
+  // ---------- initial camera ----------
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(-74.0, 4.0, 50000),
+    orientation: { heading: Cesium.Math.toRadians(25), pitch: Cesium.Math.toRadians(-20), roll:0 },
+    duration: 2
+  });
+
+  // expose some references for console debugging (optional)
+  window.__GW = { viewer, startOrbit, stopOrbit, orbitalCenters };
+}
+
+init();
+</script>
+</body>
+</html>
