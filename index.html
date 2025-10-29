@@ -115,7 +115,7 @@ async function init() {
 
   const [flareData, cementData] = await Promise.all([
     loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", Cesium.Color.RED),
-    loadGeoJSON("data/cement_plants.geojson", Cesium.Color.ORANGE)
+    loadGeoJSON("data/cement_plants.geojson", Cesium.Color.RED)
   ]);
   document.getElementById('flareLayer').onchange = e => { if(flareData) flareData.show = e.target.checked; };
   document.getElementById('cementLayer').onchange = e => { if(cementData) cementData.show = e.target.checked; };
@@ -256,6 +256,7 @@ init();
 </script>
 </body>
 </html>
+
 
 
 
