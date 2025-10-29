@@ -101,24 +101,69 @@ async function init() {
   document.getElementById('viirsLayer').onchange = e => viirs.show = e.target.checked;
 
   // ---------- Hotspots permanentes (cargar y mantener) ----------
-  async function loadGeoJSON(url, color) {
-    try {
-      const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround:true });
-      viewer.dataSources.add(ds);
-      ds.entities.values.forEach(ent => {
-        ent.point = new Cesium.PointGraphics({ color: color, pixelSize: 8, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND });
-        ent.description = ent.properties && ent.properties.name ? ent.properties.name.getValue() : (ent.name || "Hotspot");
-      });
-      return ds;
-    } catch (e) { console.error('GeoJSON load error', url, e); return null; }
-  }
+// --------- Reemplazo dentro de loadGeoJSON (usa SVG + animación con CallbackProperty) ----------
+async function loadGeoJSON(url, svgUrl) {
+  try {
+    const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround: true });
+    viewer.dataSources.add(ds);
 
-  const [flareData, cementData] = await Promise.all([
-    loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", Cesium.Color.RED),
-    loadGeoJSON("data/cement_plants.geojson", Cesium.Color.RED)
-  ]);
-  document.getElementById('flareLayer').onchange = e => { if(flareData) flareData.show = e.target.checked; };
-  document.getElementById('cementLayer').onchange = e => { if(cementData) cementData.show = e.target.checked; };
+    ds.entities.values.forEach(ent => {
+      // eliminar point si existe
+      ent.point = undefined;
+
+      // 1) Billboard con SVG (usa archivo local images/fire.svg para evitar CORS)
+      ent.billboard = new Cesium.BillboardGraphics({
+        image: svgUrl,               // 'images/fire.svg' o URL absoluta con CORS permitido
+        scale: new Cesium.CallbackProperty(function(time, result) {
+          // pulso leve en la propia imagen (escala oscilante)
+          const seconds = Cesium.JulianDate.toDate(time).getTime() / 1000.0;
+          const s = 1.0 + 0.08 * Math.sin(seconds * 2.5); // frecuencia y amplitud ajustables
+          return s;
+        }, false),
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        // pixelOffset si quieres elevar el icono visualmente
+        // pixelOffset: new Cesium.Cartesian2(0, -12)
+      });
+
+      // 2) Capa de pulso (ellipse) debajo del icono para efecto de onda
+      // usamos CallbackProperty para animar semiMajorAxis/MinorAxis y la transparencia
+      ent.ellipse = new Cesium.EllipseGraphics({
+        semiMajorAxis: new Cesium.CallbackProperty(function(time, result) {
+          const seconds = Cesium.JulianDate.toDate(time).getTime() / 1000.0;
+          // radius base en metros, oscilando entre 0.6*R y 1.0*R
+          const R = 40; // base en metros, ajustar según zoom
+          return R * (0.6 + 0.4 * (0.5 + 0.5 * Math.sin(seconds * 1.6)));
+        }, false),
+        semiMinorAxis: new Cesium.CallbackProperty(function(time, result) {
+          const seconds = Cesium.JulianDate.toDate(time).getTime() / 1000.0;
+          const R = 40;
+          return R * (0.6 + 0.4 * (0.5 + 0.5 * Math.sin(seconds * 1.6)));
+        }, false),
+        height: ent.position ? undefined : centerHeightForEntity(ent), // o usa center.height
+        material: new Cesium.ColorMaterialProperty(new Cesium.CallbackProperty(function(time, result) {
+          const seconds = Cesium.JulianDate.toDate(time).getTime() / 1000.0;
+          const alpha = 0.25 * (0.6 + 0.4 * (0.5 + 0.5 * Math.cos(seconds * 1.6)));
+          return Cesium.Color.ORANGE.withAlpha(alpha);
+        }, false)),
+        outline: false,
+        classificationType: Cesium.ClassificationType.BOTH // si quieres que afecte terreno/3D tiles
+      });
+
+      // 3) descripción (mantener)
+      ent.description = ent.properties && ent.properties.name ? ent.properties.name.getValue() : (ent.name || "Hotspot");
+    });
+
+    return ds;
+  } catch (e) { console.error('GeoJSON load error', url, e); return null; }
+}
+
+// Ejemplo de uso: carga con SVG local para evitar CORS
+const [flareData, cementData] = await Promise.all([
+  loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", "images/FireIcon.svg"),
+  loadGeoJSON("data/cement_plants.geojson", "images/FireIcon.svg") // puedes usar otro SVG
+]);
+
 
   // ---------- Centros editables en código (fácil de localizar y editar) ----------
   // Edita aquí si quieres otro centro/alturas predeterminadas.
@@ -256,6 +301,7 @@ init();
 </script>
 </body>
 </html>
+
 
 
 
