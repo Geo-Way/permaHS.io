@@ -431,7 +431,7 @@ async function init() {
   document.getElementById('cementLayer').onchange = e => { if(cementData) cementData.show = e.target.checked; };
   document.getElementById('plantLayer').onchange = e => { if(plantData) plantData.show = e.target.checked; };
   document.getElementById('chimLayer').onchange = e => { if(chimData) chimData.show = e.target.checked; };
-  document.getElementById('chimLayer').onchange = e => { if(etilData) etilData.show = e.target.checked; };
+  document.getElementById('etilLayer').onchange = e => { if(etilData) etilData.show = e.target.checked; };
 
   // ---------- Centros ----------
   const orbitalCenters = {
@@ -577,4 +577,5 @@ init();
 </script>
 </body>
 </html>
+
 
