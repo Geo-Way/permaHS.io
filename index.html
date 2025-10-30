@@ -413,11 +413,11 @@ async function init() {
     }
   }
 
-  const fireSvg = "images/Fire.png";
-  const cementSvg = "images/Fire.png";
-  const plantSvg = "images/Fire.png";
-  const chimSvg = "images/Fire.png";
-  const etilSvg = "images/Fire.png";
+  const fireSvg = "images/fire.png";
+  const cementSvg = "images/fire.png";
+  const plantSvg = "images/fire.png";
+  const chimSvg = "images/fire.png";
+  const etilSvg = "images/fire.png";
 
   const [flareData, cementData, plantData, chimData, etilData] = await Promise.all([
     loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", fireSvg, Cesium.Color.RED),
@@ -577,3 +577,4 @@ init();
 </script>
 </body>
 </html>
+
