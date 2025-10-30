@@ -427,11 +427,15 @@ async function init() {
     loadGeoJSON("data/SFI_ALD_Global_Ethylene_Database_October_2024.geojson", etilSvg, Cesium.Color.ORANGE)
   ]);
 
-  document.getElementById('flareLayer').onchange = e => { if(flareData) flareData.show = e.target.checked; };
-  document.getElementById('cementLayer').onchange = e => { if(cementData) cementData.show = e.target.checked; };
-  document.getElementById('plantLayer').onchange = e => { if(plantData) plantData.show = e.target.checked; };
-  document.getElementById('chimLayer').onchange = e => { if(chimData) chimData.show = e.target.checked; };
-  document.getElementById('etilLayer').onchange = e => { if(etilData) etilData.show = e.target.checked; };
+  document.getElementById('flareLayer').onchange = async e => { if (e.target.checked && !flareData) {flareData = await loadGeoJSON(...); } if (flareData) flareData.show = e.target.checked; };
+  
+  document.getElementById('cementLayer').onchange = async e => { if (e.target.checked && !cementData) {cementData = await loadGeoJSON(...); } if (cementData) cementData.show = e.target.checked; };
+  
+  document.getElementById('plantLayer').onchange = async e => { if (e.target.checked && !plantData) {plantData = await loadGeoJSON(...); } if (plantData) plantData.show = e.target.checked; };
+  
+  document.getElementById('chimLayer').onchange = async e => { if (e.target.checked && !chimData) {chimData = await loadGeoJSON(...); } if (chimData) chimData.show = e.target.checked; };
+  
+  document.getElementById('etilLayer').onchange = async e => { if (e.target.checked && !etilData) {etilData = await loadGeoJSON(...); } if (etilData) etilData.show = e.target.checked; };
 
   // ---------- Centros ----------
   const orbitalCenters = {
@@ -577,5 +581,6 @@ init();
 </script>
 </body>
 </html>
+
 
 
