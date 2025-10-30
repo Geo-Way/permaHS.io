@@ -3,109 +3,343 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GeoWay Orbital Drone Tour — Editable</title>
+<title>GeoWay Orbital Drone Tour — Profesional</title>
 
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
 <style>
-  html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:#0b0d11}
+html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:#0b0d11}
 
-  #controlPanel{
-    position:absolute; top:60px; left:12px;
-    background: rgba(18,20,24,0.95); color:#eee;
-    padding:12px; border-radius:10px; width:260px;
-    box-shadow:0 6px 20px rgba(0,0,0,.6); z-index:10; font-family:Arial, sans-serif;
-  }
-  #controlPanel h3{color:#ff6600;margin:4px 0 8px 0;text-align:center}
-  #controlPanel label{display:flex;align-items:center;justify-content:space-between;margin:6px 0;font-size:13px}
-  #controlPanel input[type="checkbox"]{margin-right:8px}
-  #controlPanel select,input[type="number"]{width:100%;padding:6px;border-radius:6px;border:0;margin-top:6px}
-  #controlPanel button{margin-top:8px;width:100%;padding:8px;border-radius:6px;border:0;background:#ff6600;color:#fff;cursor:pointer}
+/* === Botón de menú === */
+#menuToggle {
+  position:absolute; top:12px; left:12px;
+  background:#ff6600; color:#fff; border:none;
+  border-radius:6px; font-size:18px;
+  padding:6px 10px; cursor:pointer;
+  z-index:11; box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+#menuToggle:hover { background:#ff8533; }
 
-  #infoPanel {
-    position: absolute;
-    right: 12px;
-    top: 60px;
-    width: 280px;
-    max-height: 50%;
-    overflow-y: auto;
-    background: rgba(18,20,24,0.95);
-    color: #fff;
-    font-family: Arial, sans-serif;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,.6);
-    padding: 10px;
-    z-index: 10;
-  }
-  #infoPanel h3 {
-    color: #ff6600;
-    font-size: 15px;
-    margin-bottom: 6px;
-    text-align: center;
-  }
-  #infoContent table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-  #infoContent th, #infoContent td {
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    padding: 4px 6px;
-    text-align: left;
-  }
-  #infoContent th {
-    color: #ff9933;
-    width: 40%;
-  }
+/* === Panel lateral === */
+#controlPanel{
+  position:absolute; top:60px; left:12px;
+  background: rgba(18,20,24,0.95);
+  color:#eee;
+  padding:12px;
+  border-radius:10px;
+  width:260px;
+  box-shadow:0 6px 20px rgba(0,0,0,.6);
+  z-index:10;
+  font-family:Arial, sans-serif;
+  transition: transform .3s ease;
+}
+#controlPanel.hidden { transform: translateX(-280px); }
 
-  #logo{position:absolute;left:10px;bottom:20px;z-index:11}
-  #credits{position:absolute;right:10px;bottom:10px;color:#ddd;font-size:11px;z-index:11}
+#controlPanel h3{color:#ff6600;margin:4px 0 8px 0;text-align:center}
+#controlPanel label{display:flex;align-items:center;justify-content:space-between;margin:6px 0;font-size:13px}
+#controlPanel input[type="checkbox"]{margin-right:8px}
+#controlPanel select{width:100%;padding:6px;border-radius:6px;border:0;margin-top:6px}
+#controlPanel button{
+  margin-top:8px;width:100%;padding:8px;border-radius:6px;border:0;
+  background:#ff6600;color:#fff;cursor:pointer;
+  font-weight:bold;transition:background .2s ease;
+}
+#controlPanel button:hover { background:#ff8533; }
+#stopBtn{background:#444!important;}
+
+/* === Botón de ayuda (Hotspots permanentes) === */
+.info-btn {
+  background:none;
+  border:none;
+  color:#ff9933;
+  font-size:16px;
+  cursor:pointer;
+  padding:0 4px;
+}
+.info-btn:hover { color:#fff; }
+
+/* === Modal emergente de información === */
+#infoModal {
+  position:fixed;
+  top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.6);
+  display:none;align-items:center;justify-content:center;
+  z-index:100;
+}
+#infoModal.visible { display:flex; }
+#infoModal .content {
+  background:#1c1f25;
+  color:#eee;
+  padding:20px;
+  border-radius:12px;
+  max-width:420px;
+  text-align:justify;
+  box-shadow:0 8px 25px rgba(0,0,0,.5);
+  position:relative;
+}
+#infoModal .content h2 { color:#ff6600; margin-top:0; text-align:center; }
+#infoModal .close-btn {
+  position:absolute; top:8px; right:10px;
+  color:#aaa; font-size:20px;
+  background:none; border:none; cursor:pointer;
+}
+#infoModal .close-btn:hover { color:#fff; }
+
+/* === Leyenda desplegable === */
+#legendToggle {
+  position: absolute;
+  /* Posiciona el botón a 80px del borde inferior y 12px del borde izquierdo */
+  bottom: 80px;
+  right: 12px; 
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 11;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
+}
+#legendToggle:hover {
+  background: #fffdfd;
+}
+#legendPanel {
+  position: absolute;
+  /* Posiciona el panel a 120px del borde inferior y 12px del borde izquierdo (alineado con el botón) */
+  bottom: 120px; 
+  right: 12px;
+  display: none;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  padding: 8px;
+  z-index: 10;
+  box-shadow: 0 6px 2px rgb(255, 255, 255);
+}
+#legendPanel.visible { display:block; }
+
+#logo{position:absolute;left:350px;bottom:1px;height:42px;z-index:11}
+#logo-secundario{position:absolute;left:480px;bottom:1px;height:40px;z-index:11}
+
+#credits{position:absolute;right:10px;bottom:10px;color:#ddd;font-size:11px;z-index:11}
 </style>
 </head>
 
 <body>
 <div id="cesiumContainer"></div>
 
-<div id="controlPanel">
-  <h3>Anomalías Térmicas</h3>
+<button id="menuToggle">☰ Menú</button>
 
-  <strong>Capas</strong>
+<div id="controlPanel">
+  <h3>Explorador de Anomalías Térmicas</h3>
+
+  <strong>Global Wildfire Information System - GWIS</strong>
   <label><span>MODIS (EFFIS)</span><input type="checkbox" id="modisLayer" checked></label>
   <label><span>VIIRS (EFFIS)</span><input type="checkbox" id="viirsLayer" checked></label>
 
-  <strong style="margin-top:8px;display:block">Hotspots permanentes</strong>
-  <label><span>Nonferrous Metal Plants</span><input type="checkbox" id="flareLayer" checked></label>
-  <label><span>Cement Plants</span><input type="checkbox" id="cementLayer" checked></label>
+  <strong style="display:block;margin-top:8px;">
+    Hotspots permanentes 🔥
+    <button class="info-btn" id="infoBtn" title="Hotspot permanente">¿Qué es un hotspot permanente?</button>
+  </strong>
+  <label><span>🏭Plantas de metales no ferrosos</span><input type="checkbox" id="flareLayer" checked></label>
+  <label><span>🏭Plantas de cemento</span><input type="checkbox" id="cementLayer" checked></label>
+  <label><span>🏭Centrales eléctricas</span><input type="checkbox" id="plantLayer" unchecked></label>
+  <label><span>🏭Chimeneas</span><input type="checkbox" id="chimLayer" unchecked></label>
+  <label><span>🏭Plantas Petroquimicas</span><input type="checkbox" id="etilLayer" unchecked></label>
 
-  <strong style="margin-top:8px;display:block">Edificios 3D</strong>
+  <strong style="display:block;margin-top:8px;">Edificios 3D</strong>
   <label><span>Edificios LOD</span><input type="checkbox" id="buildingsLayer" checked></label>
 
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
 
-  <strong>Ejemplos / Centros</strong>
+  <strong>Ejemplos</strong>
   <select id="exampleSelect">
-    <option value="california">California</option>
-    <option value="australia">Australia</option>
-    <option value="europa">Europa (Barcelona)</option>
+    <option value="california">EEUU (Marathon - Galveston Bay Refinery)</option>
+    <option value="australia">Australia (Central Eléctrica de Melburne)</option>
+    <option value="europa">España (Central eléctrica de Aboño)</option>
   </select>
-
-  <label style="margin-top:8px"><span>Radio (m)</span><input id="radiusInput" type="number" value="300" min="10" step="10"></label>
-  <label><span>Duración por vuelta (s)</span><input id="durationInput" type="number" value="30" min="4" step="1"></label>
-  <label><span>Amp. vertical (m)</span><input id="vAmpInput" type="number" value="30" min="0" step="1"></label>
-
   <button id="startBtn">Iniciar órbita</button>
-  <button id="stopBtn" style="background:#444;color:#fff">Detener órbita</button>
+  <button id="stopBtn">Detener órbita</button>
 </div>
 
+<button id="legendToggle">📊 Leyenda</button>
+<div id="legendPanel"><img src="images/legend.png" alt="Leyenda" width="240"></div>
+
+<!-- ===================== MODAL Hotspot Permanente ===================== -->
+<div id="infoModal">
+  <div class="content">
+    <button class="close-btn">&times;</button>
+    <h2>La Importancia de Conocer los Hotspots Permanentes en Teledetección de Incendios Forestales</h2>
+    <img src="images/flaregas.jpg" alt="Hotspot Permanente - Quema de gas en antorcha" 
+         style="width:100%; max-width:500px; display:block; margin:15px auto; border-radius:10px;">
+
+    <p>
+      La <b>teledetección satelital</b> es la herramienta más eficaz para el monitoreo global de incendios forestales 
+      en tiempo casi real. Sensores térmicos como 
+      <a href="https://earthdata.nasa.gov/earth-observation-data/near-real-time/firms" target="_blank">MODIS</a> y 
+      <a href="https://earthdata.nasa.gov/earth-observation-data/near-real-time/firms/viirs-i-band-active-fire-data" target="_blank">VIIRS</a> 
+      de la NASA detectan anomalías de temperatura en la superficie terrestre, conocidas como <i>“hotspots”</i> o puntos de calor.
+    </p>
+
+<p>
+  Sin embargo, el monitoreo del fuego activo presenta un desafío clave:
+</p>
+
+<blockquote class="highlight-quote">
+  “No todos los incendios son detectables, ni todo lo detectado son incendios.”
+  <br>
+  <span class="author">
+    — <a href="https://www.linkedin.com/in/mar%C3%ADa-isabel-cruz-l%C3%B3pez-9334716a/?originalSubdomain=mx" target="_blank">Dra. Isabel Cruz López</a>, CONABIO (México)
+  </span>
+</blockquote>
+
+<p>
+  Esta afirmación resume uno de los mayores retos en la teledetección del fuego activo, 
+  y subraya la necesidad de identificar y eliminar los <b>hotspots permanentes</b> 
+  para evitar interpretaciones erróneas en los sistemas de monitoreo satelital.
+</p>
 
 
-<img id="logo" src="images/Logo5.png" alt="logo" style="height:42px">
-<div id="credits">© Cesium | © OpenStreetMap</div>
+    <h3>¿Qué son y por qué filtrarlos?</h3>
+    <p>
+      Un <b>hotspot permanente</b> es una fuente de calor recurrente o constante, generada por actividades humanas no relacionadas 
+      con la vegetación, como <b>plantas de cemento, fundiciones, quemas de gas en antorcha</b> o <b>procesos geotérmicos</b>.
+      Si no se identifican y filtran estos puntos fijos del conjunto de datos, se producirán <b>falsas alarmas</b> que pueden 
+      saturar los sistemas de alerta temprana y desviar recursos valiosos.
+    </p>
+
+    <p>
+      La exclusión de estos puntos es un paso <b>mandatorio</b> en la fase de preprocesamiento de los datos de detección de fuego activo. 
+      De lo contrario, cada paso del satélite sobre estas fuentes térmicas podría interpretarse erróneamente como un nuevo incendio.
+    </p>
+
+    <h3>Impacto en la Precisión y la Investigación</h3>
+    <p>
+      Filtrar rigurosamente los <i>falsos positivos</i> permite a los sistemas de gestión de incendios forestales enfocarse 
+      únicamente en anomalías que representan una amenaza real. 
+      Estudios en <i>Remote Sensing</i> y otras revistas de alto impacto destacan que el 
+      <b>enmascaramiento de fuentes industriales fijas</b> (identificadas en los hotspots permanentes) es esencial para 
+      lograr una <b>precisión superior al 95%</b> en la distinción entre incendios reales y otras fuentes de calor.
+    </p>
+
+    <p>
+      En síntesis, <b>conocer y descontar los hotspots permanentes</b> garantiza la integridad de los datos térmicos, 
+      permitiendo que la información satelital evolucione de una simple <i>detección de calor</i> 
+      a una <b>detección confiable de incendios forestales</b>.
+    </p>
+  </div>
+</div>
+
+<!-- ======= Estilos del modal ======= -->
+<style>
+
+.highlight-quote {
+  background: rgba(255, 153, 51, 0.1);
+  border-left: 4px solid #ffa726;
+  margin: 12px 0;
+  padding: 12px 16px;
+  font-style: italic;
+  color: #ffcc80;
+  font-size: 15px;
+  line-height: 1.5;
+  border-radius: 6px;
+}
+
+.highlight-quote .author {
+  display: block;
+  margin-top: 6px;
+  text-align: right;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.highlight-quote a {
+  color: #29b6f6;
+  text-decoration: none;
+}
+
+.highlight-quote a:hover {
+  text-decoration: underline;
+  color: #4fc3f7;
+}
+
+
+
+  #infoModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.3s ease;
+  }
+
+  #infoModal .content {
+    position: relative;
+    background: rgba(20,22,26,0.95);
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 85%;
+    overflow-y: auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+    color: #eee;
+    font-family: "Segoe UI", sans-serif;
+    line-height: 1.6;
+    animation: slideUp 0.4s ease;
+  }
+
+  #infoModal h2 { color: #ffa726; font-size: 20px; margin-bottom: 10px; }
+  #infoModal h3 { color: #ffb74d; margin-top: 15px; }
+  #infoModal a { color: #29b6f6; text-decoration: none; }
+  #infoModal a:hover { text-decoration: underline; }
+
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+  }
+  .close-btn:hover { color: #ff4444; }
+
+  @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+  @keyframes slideUp { from {transform: translateY(20px);} to {transform: translateY(0);} }
+</style>
+
+
+<div class="logo-container">
+    <img id="logo" src="images/Logo5.png" alt="Logo Principal">
+    <img id="logo-secundario" src="images/redlatif.png" alt="Logo Secundario">
+</div>
+<div id="credits">Geoway 2025, With the colaboration of Redlatf |- © Cesium | © OpenStreetMap</div>
 
 <script>
 Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZjA1NGQ3ZS0xYmViLTRkYjUtODgzNy0wYjZhN2RkOTc2NzMiLCJpZCI6NTc5ODMsImlhdCI6MTc2MTY1NjMzMn0.kP1vTCnx99T9mHM7psPv7wzS9hwLV3eKbKyvGYtY_kw";
 
+// === Lógica UI ===
+document.getElementById('menuToggle').onclick = () => {
+  document.getElementById('controlPanel').classList.toggle('hidden');
+};
+
+const infoModal = document.getElementById('infoModal');
+document.getElementById('infoBtn').onclick = () => infoModal.classList.add('visible');
+infoModal.querySelector('.close-btn').onclick = () => infoModal.classList.remove('visible');
+
+const legendToggle = document.getElementById('legendToggle');
+const legendPanel = document.getElementById('legendPanel');
+legendToggle.onclick = () => legendPanel.classList.toggle('visible');
+
+// === Cesium Init ===
 async function init() {
   const viewer = new Cesium.Viewer('cesiumContainer', {
     terrain: Cesium.Terrain.fromWorldTerrain(),
@@ -116,7 +350,7 @@ async function init() {
   });
   viewer.scene.globe.depthTestAgainstTerrain = false;
 
-  // ---------- Edificios 3D ----------
+// ---------- Edificios 3D ----------
   const buildings = await Cesium.createOsmBuildingsAsync();
   viewer.scene.primitives.add(buildings);
   document.getElementById('buildingsLayer').onchange = e => buildings.show = e.target.checked;
@@ -179,22 +413,31 @@ async function init() {
     }
   }
 
-  const fireSvg = "images/fire.png";
-  const cementSvg = "images/fire.png";
+  const fireSvg = "images/Fire.png";
+  const cementSvg = "images/Fire.png";
+  const plantSvg = "images/Fire.png";
+  const chimSvg = "images/Fire.png";
+  const etilSvg = "images/Fire.png";
 
-  const [flareData, cementData] = await Promise.all([
+  const [flareData, cementData, plantData, chimData, etilData] = await Promise.all([
     loadGeoJSON("data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", fireSvg, Cesium.Color.RED),
-    loadGeoJSON("data/cement_plants.geojson", cementSvg, Cesium.Color.ORANGE)
+    loadGeoJSON("data/cement_plants.geojson", cementSvg, Cesium.Color.ORANGE),
+    loadGeoJSON("data/global_power_plant_database.geojson", plantSvg, Cesium.Color.ORANGE),
+    loadGeoJSON("data/flare_volume_and_intensity.geojson", chimSvg, Cesium.Color.ORANGE),
+    loadGeoJSON("data/SFI_ALD_Global_Ethylene_Database_October_2024.geojson", etilSvg, Cesium.Color.ORANGE)
   ]);
 
   document.getElementById('flareLayer').onchange = e => { if(flareData) flareData.show = e.target.checked; };
   document.getElementById('cementLayer').onchange = e => { if(cementData) cementData.show = e.target.checked; };
+  document.getElementById('plantLayer').onchange = e => { if(plantData) plantData.show = e.target.checked; };
+  document.getElementById('chimLayer').onchange = e => { if(chimData) chimData.show = e.target.checked; };
+  document.getElementById('chimLayer').onchange = e => { if(etilData) etilData.show = e.target.checked; };
 
   // ---------- Centros ----------
   const orbitalCenters = {
-    california: { lon: -90.39587, lat: 29.99702, height: 80 },
-    australia:  { lon: 144.93447, lat:-37.82845, height: 80 },
-    europa:     { lon: 0.54355, lat: 40.57781, height: 300 }
+    california: { lon: -94.921584, lat: 29.373240, height: 700 },
+    australia:  { lon: 	142.6673, lat:-38.06328, height: 500 },
+    europa:     { lon: -5.7235501, lat: 43.5601143, height: 300 }
   };
 
   // ---------- Órbita ----------
@@ -216,6 +459,8 @@ async function init() {
     });
   }
 
+// ... (código anterior)
+
   async function startOrbit(centerKey, params) {
     const center = orbitalCenters[centerKey];
     if (!center) return;
@@ -223,59 +468,84 @@ async function init() {
 
     orbitalState.running = true;
     const { radius, duration, vAmp } = params;
-    const steps = Math.max(36, Math.round(duration * 6));
+    // Aumentar steps para una órbita más suave
+    const steps = Math.max(120, Math.round(duration * 6)); 
     const stepDuration = duration / steps;
 
+    // 1. FlyTo para acercarse al objetivo
     await viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height + radius),
+      destination: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height + radius * 1.5),
       duration: 1.2
     });
 
     let step = 0;
     orbitalState.intervalId = setInterval(() => {
       if (!orbitalState.running) { clearInterval(orbitalState.intervalId); return; }
+      
       const angle = (2 * Math.PI * step) / steps;
-      const camLon = center.lon + (radius / 111000) * Math.cos(angle);
-      const camLat = center.lat + (radius / 111000) * Math.sin(angle);
+      
+      // Coordenadas de la cámara en la órbita (longitud, latitud)
+      const offsetLon = (radius / 111000) * Math.cos(angle);
+      const offsetLat = (radius / 111000) * Math.sin(angle);
+      
+      const camLon = center.lon + offsetLon;
+      const camLat = center.lat + offsetLat;
       const camHeight = center.height + vAmp * Math.sin(angle);
-      const heading = Math.atan2(center.lat - camLat, center.lon - camLon);
+      
+      const cameraPosition = Cesium.Cartesian3.fromDegrees(camLon, camLat, camHeight);
+      
+      // CÁLCULO DEL HEADING (RUMBO) para mirar al centro:
+      const heading = Math.atan2(center.lat - camLat, center.lon - camLon) + Cesium.Math.toRadians(90);
 
-      viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(camLon, camLat, camHeight),
-        orientation: { heading, pitch: Cesium.Math.toRadians(-20) },
-        duration: stepDuration,
-        easingFunction: Cesium.EasingFunction.LINEAR_NONE
+      // USAR setView PARA MOVIMIENTO CONTINUO:
+      viewer.camera.setView({
+        destination: cameraPosition,
+        orientation: {
+          heading: heading,
+          pitch: Cesium.Math.toRadians(-20), // Inclinación hacia abajo
+          roll: 0
+        }
       });
-
+      
       step = (step + 1) % steps;
-    }, stepDuration * 1000);
+    }, stepDuration * 1000); 
   }
 
   function stopOrbit() {
     orbitalState.running = false;
     if (orbitalState.intervalId) clearInterval(orbitalState.intervalId);
     viewer.entities.removeById('orbitCircle');
+    // Mueve la cámara ligeramente para liberar el control
+    viewer.camera.flyTo({
+        destination: viewer.camera.position, 
+        duration: 0.5,
+        offset: new Cesium.HeadingPitchRange(0, 0, 1)
+    });
   }
 
-  // ---------- UI ----------
+  // --- UI Handlers (Depurado con parámetros fijos) ---
   const startBtn = document.getElementById('startBtn');
   const stopBtn = document.getElementById('stopBtn');
   const exampleSelect = document.getElementById('exampleSelect');
-  const radiusInput = document.getElementById('radiusInput');
-  const durationInput = document.getElementById('durationInput');
-  const vAmpInput = document.getElementById('vAmpInput');
+  
+  // Valores fijos para la órbita (antes se leían de los inputs eliminados)
+  const ORBIT_PARAMS = {
+    radius: 300,
+    duration: 30,
+    vAmp: 30
+  };
 
   startBtn.onclick = () => {
+    // 1. OBTENER la clave del selector
     const key = exampleSelect.value;
+    
     stopOrbit();
-    startOrbit(key, {
-      radius: +radiusInput.value,
-      duration: +durationInput.value,
-      vAmp: +vAmpInput.value
-    });
+    // 2. Usar valores fijos para los parámetros
+    startOrbit(key, ORBIT_PARAMS);
   };
   stopBtn.onclick = stopOrbit;
 
+// ... (resto del código)
   // ---------- Panel de información ----------
   const infoContent = document.getElementById('infoContent');
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
@@ -307,4 +577,3 @@ init();
 </script>
 </body>
 </html>
-
