@@ -420,7 +420,7 @@ style.innerHTML = `
 `;
 document.head.appendChild(style);
 
-// Función genérica para cargar GeoJSON con ícono SVG
+// Función genérica para cargar GeoJSON con ícono SVG o PNG
 async function loadGeoJSON(url, iconUrl, color) {
   try {
     loader.style.display = "block"; // Mostrar spinner
@@ -463,7 +463,7 @@ const layerConfigs = {
   etilLayer:   { file: "data/SFI_ALD_Global_Ethylene_Database_October_2024.geojson", color: Cesium.Color.MAGENTA }
 };
 
-const fireIcon = "images/Fire.svg";
+const fireIcon = "images/fire.svg";
 const loadedLayers = {}; // almacenamiento en caché de capas ya cargadas
 
 for (const id in layerConfigs) {
