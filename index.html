@@ -436,7 +436,7 @@ async function loadGeoJSON(url, iconUrl, color) {
       });
 
       ent.label = new Cesium.LabelGraphics({
-        text: ent.properties?.name?.getValue() || "Hotspot",
+        text: ent.properties?.name?.getValue() || "",
         font: "12px sans-serif",
         fillColor: color.withAlpha(0.9),
         pixelOffset: new Cesium.Cartesian2(0, -25),
@@ -631,4 +631,5 @@ init();
 </script>
 </body>
 </html>
+
 
