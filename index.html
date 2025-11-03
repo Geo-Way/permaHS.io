@@ -48,6 +48,35 @@ html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:
 #controlPanel button:hover { background:#ff8533; }
 #stopBtn{background:#444!important;}
 
+/* --- Estilos para la nueva funcionalidad --- */
+#controlPanel input[type="number"] {
+  width: 50px; /* Ancho más pequeño para números */
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #333; 
+  background: #222; 
+  color: #fff; 
+  text-align: center; 
+}
+#controlPanel input[type="number"]:focus {
+  outline: none;
+  border-color: #ff6600; 
+  box-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+#exportCsvBtn {
+  margin-top: 12px; 
+  background: #28a745 !important;
+}
+#clearGraphicsBtn {
+  margin-top: 8px;
+  background: #007bff !important;
+}
+#toggle2DBtn { /* NUEVO ESTILO PARA EL TOGGLE DE VISTA */
+  margin-top: 8px;
+  background: #5a6268 !important; 
+}
+
+
 /* === Botón de ayuda (Hotspots permanentes) === */
 .info-btn {
   background:none;
@@ -89,7 +118,6 @@ html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:
 /* === Leyenda desplegable === */
 #legendToggle {
   position: absolute;
-  /* Posiciona el botón a 80px del borde inferior y 12px del borde izquierdo */
   bottom: 80px;
   right: 12px; 
   background: #222;
@@ -107,7 +135,6 @@ html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:
 }
 #legendPanel {
   position: absolute;
-  /* Posiciona el panel a 120px del borde inferior y 12px del borde izquierdo (alineado con el botón) */
   bottom: 120px; 
   right: 12px;
   display: none;
@@ -123,123 +150,9 @@ html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:
 #logo-secundario{position:absolute;left:480px;bottom:1px;height:40px;z-index:11}
 
 #credits{position:absolute;right:10px;bottom:10px;color:#ddd;font-size:11px;z-index:11}
-</style>
-</head>
-
-<body>
-<div id="cesiumContainer"></div>
-
-<button id="menuToggle">☰ Menú</button>
-
-<div id="controlPanel">
-  <h3>PAT-X<br>Explorador de Anomalías Térmicas Permanentes</h3>
-
-  <strong>Global Wildfire Information System - GWIS</strong>
-  <label><span>MODIS (EFFIS)</span><input type="checkbox" id="modisLayer" checked></label>
-  <label><span>VIIRS (EFFIS)</span><input type="checkbox" id="viirsLayer" checked></label>
-
-  <strong style="display:block;margin-top:8px;">
-    Hotspots permanentes 🔥
-    <button class="info-btn" id="infoBtn" title="Hotspot permanente">¿Qué es un hotspot permanente?</button>
-  </strong>
-  <label><span>🏭Fundiciones no ferrosas (EEUU)</span><input type="checkbox" id="flareLayer" unchecked></label>
-  <label><span>🏭Plantas de cemento</span><input type="checkbox" id="cementLayer" unchecked></label>
-  <label><span>🏭Centrales eléctricas</span><input type="checkbox" id="plantLayer" unchecked></label>
-  <label><span>🏭Siderúrgicas</span><input type="checkbox" id="chimLayer" checked></label>
-  <label><span>🏭Plantas Petroquimicas</span><input type="checkbox" id="etilLayer" unchecked></label>
-
-  <strong style="display:block;margin-top:8px;">Edificios 3D</strong>
-  <label><span>Edificios LOD</span><input type="checkbox" id="buildingsLayer" checked></label>
-
-  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
-
-  <strong>Ejemplos</strong>
-  <select id="exampleSelect">
-    <option value="california">EEUU (Marathon - Galveston Bay Refinery)</option>
-    <option value="australia">Australia (Port Kembla - Siderurgica BlueScope)</option>
-    <option value="europa">España (Central eléctrica de Aboño)</option>
-  </select>
-  <button id="startBtn">Iniciar órbita</button>
-  <button id="stopBtn">Detener órbita</button>
-</div>
-
-<button id="legendToggle">📊 Leyenda</button>
-<div id="legendPanel"><img src="images/legend.png" alt="Leyenda" width="240"></div>
-
-<!-- ===================== MODAL Hotspot Permanente ===================== -->
-<div id="infoModal">
-  <div class="content">
-    <button class="close-btn">&times;</button>
-    <h2>La Importancia de Conocer los Hotspots Permanentes en Teledetección de Incendios Forestales</h2>
-    <img src="images/flaregas.jpg" alt="Hotspot Permanente - Quema de gas en antorcha" 
-         style="width:100%; max-width:500px; display:block; margin:15px auto; border-radius:10px;">
-
-    <p>
-      La <b>teledetección satelital</b> es la herramienta más eficaz para el monitoreo global de incendios forestales 
-      en tiempo casi real. Sensores térmicos como 
-      <a href="https://earthdata.nasa.gov/earth-observation-data/near-real-time/firms" target="_blank">MODIS</a> y 
-      <a href="https://earthdata.nasa.gov/earth-observation-data/near-real-time/firms/viirs-i-band-active-fire-data" target="_blank">VIIRS</a> 
-      de la NASA detectan anomalías de temperatura en la superficie terrestre, conocidas como <i>“hotspots”</i> o puntos de calor.
-    </p>
-
-<p>
-  Sin embargo, el monitoreo del fuego activo presenta un desafío clave:
-</p>
-
-<blockquote class="highlight-quote">
-  “No todos los incendios son detectables, ni todo lo detectado son incendios.”
-  <br>
-  <span class="author">
-    — <a href="https://www.linkedin.com/in/mar%C3%ADa-isabel-cruz-l%C3%B3pez-9334716a/?originalSubdomain=mx" target="_blank">Dra. Isabel Cruz López</a>, CONABIO (México)
-  </span>
-</blockquote>
-
-<p>
-  Esta afirmación resume uno de los mayores retos en la teledetección del fuego activo, 
-  y subraya la necesidad de identificar y eliminar los <b>hotspots permanentes</b> 
-  para evitar interpretaciones erróneas en los sistemas de monitoreo satelital.
-</p>
 
 
-    <h3>¿Qué son y por qué filtrarlos?</h3>
-    <p>
-      Un <b>hotspot permanente</b> es una fuente de calor recurrente o constante, generada por actividades humanas no relacionadas 
-      con la vegetación, como <b>plantas de cemento, fundiciones, quemas de gas en antorcha</b> o <b>procesos geotérmicos</b>.
-      Si no se identifican y filtran estos puntos fijos del conjunto de datos, se producirán <b>falsas alarmas</b> que pueden 
-      saturar los sistemas de alerta temprana y desviar recursos valiosos.
-    </p>
-
-    <p>
-      La exclusión de estos puntos es un paso <b>mandatorio</b> en la fase de preprocesamiento de los datos de detección de fuego activo. 
-      De lo contrario, cada paso del satélite sobre estas fuentes térmicas podría interpretarse erróneamente como un nuevo incendio.
-    </p>
-
-    <h3>Impacto en la Precisión y la Investigación</h3>
-    <p>
-      Filtrar rigurosamente los <i>falsos positivos</i> permite a los sistemas de gestión de incendios forestales enfocarse 
-      únicamente en anomalías que representan una amenaza real. 
-      Estudios en <i>Remote Sensing</i> y otras revistas de alto impacto destacan que el 
-      <b>enmascaramiento de fuentes industriales fijas</b> (identificadas en los hotspots permanentes) es esencial para 
-      lograr una <b>precisión superior al 95%</b> en la distinción entre incendios reales y otras fuentes de calor.
-    </p>
-
-    <p>
-      En síntesis, <b>conocer y descontar los hotspots permanentes</b> garantiza la integridad de los datos térmicos, 
-      permitiendo que la información satelital evolucione de una simple <i>detección de calor</i> 
-      a una <b>detección confiable de incendios forestales</b>.
-    </p>
-
-      <p>
-      ⚠️ Nota: El Explorador de Hotspots Permanentes es una <b>herramienta experimental. Su propósito es exploratorio y 
-        académico, no operativo</b>. Los resultados deben interpretarse como aproximaciones iniciales y no como clasificaciones 
-        definitivas de actividad térmica.
-    </p>
-    
-  </div>
-</div>
-
-<!-- ======= Estilos del modal ======= -->
-<style>
+/* Estilos del modal - (Deja los estilos de .highlight-quote, #infoModal, etc. como están) */
 
 .highlight-quote {
   background: rgba(255, 153, 51, 0.1);
@@ -271,83 +184,196 @@ html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;background:
   color: #4fc3f7;
 }
 
+#infoModal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.3s ease;
+}
 
+#infoModal .content {
+  position: relative;
+  background: rgba(20,22,26,0.95);
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 85%;
+  overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+  color: #eee;
+  font-family: "Segoe UI", sans-serif;
+  line-height: 1.6;
+  animation: slideUp 0.4s ease;
+}
 
-  #infoModal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    animation: fadeIn 0.3s ease;
-  }
+#infoModal h2 { color: #ffa726; font-size: 20px; margin-bottom: 10px; }
+#infoModal h3 { color: #ffb74d; margin-top: 15px; }
+#infoModal a { color: #29b6f6; text-decoration: none; }
+#infoModal a:hover { text-decoration: underline; }
 
-  #infoModal .content {
-    position: relative;
-    background: rgba(20,22,26,0.95);
-    padding: 25px;
-    border-radius: 12px;
-    max-width: 700px;
-    width: 90%;
-    max-height: 85%;
-    overflow-y: auto;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.7);
-    color: #eee;
-    font-family: "Segoe UI", sans-serif;
-    line-height: 1.6;
-    animation: slideUp 0.4s ease;
-  }
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
+}
+.close-btn:hover { color: #ff4444; }
 
-  #infoModal h2 { color: #ffa726; font-size: 20px; margin-bottom: 10px; }
-  #infoModal h3 { color: #ffb74d; margin-top: 15px; }
-  #infoModal a { color: #29b6f6; text-decoration: none; }
-  #infoModal a:hover { text-decoration: underline; }
-
-  .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 28px;
-    cursor: pointer;
-  }
-  .close-btn:hover { color: #ff4444; }
-
-  @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
-  @keyframes slideUp { from {transform: translateY(20px);} to {transform: translateY(0);} }
+@keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+@keyframes slideUp { from {transform: translateY(20px);} to {transform: translateY(0);} }
 </style>
 
 
+</head>
+
+<body>
+<div id="cesiumContainer"></div>
+
+<button id="menuToggle">☰ Menú</button>
+
+<div id="controlPanel">
+  <h3>PAT-X<br>Explorador de Anomalías Térmicas Permanentes</h3>
+
+  <strong>Global Wildfire Information System - GWIS</strong>
+  <label><span>MODIS (EFFIS)</span><input type="checkbox" id="modisLayer" checked></label>
+  <label><span>VIIRS (EFFIS)</span><input type="checkbox" id="viirsLayer" checked></label>
+
+  <strong style="display:block;margin-top:8px;">
+    Hotspots permanentes 🔥
+    <button class="info-btn" id="infoBtn" title="Hotspot permanente">¿Qué es un hotspot permanente?</button>
+  </strong>
+  <label><span>🏭Fundiciones no ferrosas (EEUU)</span><input type="checkbox" id="flareLayer" unchecked></label>
+  <label><span>🏭Plantas de cemento</span><input type="checkbox" id="cementLayer" unchecked></label>
+  <label><span>🏭Centrales eléctricas</span><input type="checkbox" id="plantLayer" unchecked></label>
+  <label><span>🏭Siderúrgicas</span><input type="checkbox" id="chimLayer" checked></label>
+  <label><span>🏭Plantas Petroquimicas</span><input type="checkbox" id="etilLayer" unchecked></label>
+
+  <strong style="display:block;margin-top:8px;">Edificios 3D</strong>
+  <label><span>Edificios LOD</span><input type="checkbox" id="buildingsLayer" checked></label>
+
+  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
+
+  <strong>Análisis de Proximidad 🔎</strong>
+  <label for="bufferRadius"><span>Radio del Buffer (km)</span>
+    <input type="number" id="bufferRadius" value="10" min="1" max="100" step="1">
+  </label>
+  <button id="exportCsvBtn">Exportar Resultados a CSV</button>
+  <button id="clearGraphicsBtn">Limpiar Gráficos (Buffer, Líneas)</button>
+
+  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0">
+  
+  <button id="toggle2DBtn">Cambiar a Vista 2D</button> <strong>Ejemplos</strong>
+  <select id="exampleSelect">
+    <option value="california">EEUU (Marathon - Galveston Bay Refinery)</option>
+    <option value="australia">Australia (Port Kembla - Siderurgica BlueScope)</option>
+    <option value="europa">España (Central eléctrica de Aboño)</option>
+  </select>
+  <button id="startBtn">Iniciar órbita</button>
+  <button id="stopBtn">Detener órbita</button>
+</div>
+
+<button id="legendToggle">📊 Leyenda</button>
+<div id="legendPanel"><img src="images/legend.png" alt="Leyenda" width="240"></div>
+
+<div id="infoModal">
+  <div class="content">
+    <button class="close-btn">&times;</button>
+    <h2>La Importancia de Conocer los Hotspots Permanentes en Teledetección de Incendios Forestales</h2>
+    <img src="images/flaregas.jpg" alt="Hotspot Permanente - Quema de gas en antorcha" 
+          style="width:100%; max-width:500px; display:block; margin:15px auto; border-radius:10px;">
+
+    <p>
+      La <b>teledetección satelital</b> es la herramienta más eficaz para el monitoreo global de incendios forestales 
+      en tiempo casi real. Sensores térmicos como 
+      <a href="https://earthdata.nasa.gov/earth-observation-data/near-real-time/firms" target="_blank">MODIS</a> y 
+      <a href="https://earthdata.nasa.gov/earth-observation-data/near-real-time/firms/viirs-i-band-active-fire-data" target="_blank">VIIRS</a> 
+      de la NASA detectan anomalías de temperatura en la superficie terrestre, conocidas como <i>“hotspots”</i> o puntos de calor.
+    </p>
+
+    <p>
+      Sin embargo, el monitoreo del fuego activo presenta un desafío clave:
+    </p>
+
+    <blockquote class="highlight-quote">
+      “No todos los incendios son detectables, ni todo lo detectado son incendios.”
+      <br>
+      <span class="author">
+        — <a href="https://www.linkedin.com/in/mar%C3%ADa-isabel-cruz-l%C3%B3pez-9334716a/?originalSubdomain=mx" target="_blank">Dra. Isabel Cruz López</a>, CONABIO (México)
+      </span>
+    </blockquote>
+
+    <p>
+      Esta afirmación resume uno de los mayores retos en la teledetección del fuego activo, 
+      y subraya la necesidad de identificar y eliminar los <b>hotspots permanentes</b> 
+      para evitar interpretaciones erróneas en los sistemas de monitoreo satelital.
+    </p>
+
+
+    <h3>¿Qué son y por qué filtrarlos?</h3>
+    <p>
+      Un <b>hotspot permanente</b> es una fuente de calor recurrente o constante, generada por actividades humanas no relacionadas 
+      con la vegetación, como <b>plantas de cemento, fundiciones, quemas de gas en antorcha</b> o <b>procesos geotérmicos</b>.
+      Si no se identifican y filtran estos puntos fijos del conjunto de datos, se producirán <b>falsas alarmas</b> que pueden 
+      saturar los sistemas de alerta temprana y desviar recursos valiosos.
+    </p>
+
+    <p>
+      La exclusión de estos puntos es un paso <b>mandatorio</b> en la fase de preprocesamiento de los datos de detección de fuego activo. 
+      De lo contrario, cada paso del satélite sobre estas fuentes térmicas podría interpretarse erróneamente como un nuevo incendio.
+    </p>
+
+    <h3>Impacto en la Precisión y la Investigación</h3>
+    <p>
+      Filtrar rigurosamente los <i>falsos positivos</i> permite a los sistemas de gestión de incendios forestales enfocarse 
+      únicamente en anomalías que representan una amenaza real. 
+      Estudios en <i>Remote Sensing</i> y otras revistas de alto impacto destacan que el 
+      <b>enmascaramiento de fuentes industriales fijas</b> (identificadas en los hotspots permanentes) es esencial para 
+      lograr una <b>precisión superior al 95%</b> en la distinción entre incendios reales y otras fuentes de calor.
+    </p>
+
+    <p>
+      En síntesis, <b>conocer y descontar los hotspots permanentes</b> garantiza la integridad de los datos térmicos, 
+      permitiendo que la información satelital evolucione de una simple <i>detección de calor</i> 
+      a una <b>detección confiable de incendios forestales</b>.
+    </p>
+
+    <p>
+      ⚠️ Nota: El Explorador de Hotspots Permanentes es una <b>herramienta experimental. Su propósito es exploratorio y 
+      académico, no operativo</b>. Los resultados deben interpretarse como aproximaciones iniciales y no como clasificaciones 
+      definitivas de actividad térmica.
+    </p>
+    
+  </div>
+</div>
 <div class="logo-container">
     <img id="logo" src="images/Logo5.png" alt="Logo Principal">
     <img id="logo-secundario" src="images/redlatif.png" alt="Logo Secundario">
 </div>
-      <!-- PIE DE PÁGINA CON CRÉDITOS ACTUALIZADOS Y ENLAZADOS (Atribución de Mapa) -->
 <div id="credits"><a href="https://geo-way.github.io/GeoWay.io/" target="_blank">Geoway</a> | En colaboración con <a href="https://www.redlatif.org/" target="_blank">Redlatf</a> | Datos: <a href="https://firms.modaps.eosdis.nasa.gov/" target="_blank">NASA - FIRMS</a>, <a href="https://gwis.jrc.ec.europa.eu/" target="_blank">ESA-GWIS</a>, <a href="https://cesium.com/" target="_blank">&copy; Cesium</a>, <a href="https://www.openstreetmap.org/" target="_blank">&copy; OpenStreetMap</a></div>
+
 
 <script>
 Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZjA1NGQ3ZS0xYmViLTRkYjUtODgzNy0wYjZhN2RkOTc2NzMiLCJpZCI6NTc5ODMsImlhdCI6MTc2MTY1NjMzMn0.kP1vTCnx99T9mHM7psPv7wzS9hwLV3eKbKyvGYtY_kw";
 
-// === Lógica UI ===
 document.getElementById('menuToggle').onclick = () => {
   document.getElementById('controlPanel').classList.toggle('hidden');
 };
-
 const infoModal = document.getElementById('infoModal');
 document.getElementById('infoBtn').onclick = () => infoModal.classList.add('visible');
 infoModal.querySelector('.close-btn').onclick = () => infoModal.classList.remove('visible');
+document.getElementById('legendToggle').onclick = () => document.getElementById('legendPanel').classList.toggle('visible');
 
-const legendToggle = document.getElementById('legendToggle');
-const legendPanel = document.getElementById('legendPanel');
-legendToggle.onclick = () => legendPanel.classList.toggle('visible');
-
-// === Cesium Init ===
 async function init() {
   const viewer = new Cesium.Viewer('cesiumContainer', {
     terrain: Cesium.Terrain.fromWorldTerrain(),
@@ -357,13 +383,22 @@ async function init() {
     animation: false
   });
   viewer.scene.globe.depthTestAgainstTerrain = false;
+  
+  // VARIABLES GLOBALES PARA GRÁFICOS DINÁMICOS
+  let nearestLines = []; 
+  let nearestLabels = [];
+  let currentBuffer = null; 
+  let lastProximityResults = []; 
 
-// ---------- Edificios 3D ----------
+  const LINE_WIDTH = 20; // Ancho para que la flecha se vea bien
+  const LINE_COLOR = Cesium.Color.RED.withAlpha(0.8);
+
+  // ======== Capa de edificios ========
   const buildings = await Cesium.createOsmBuildingsAsync();
   viewer.scene.primitives.add(buildings);
   document.getElementById('buildingsLayer').onchange = e => buildings.show = e.target.checked;
 
-  // ---------- MODIS / VIIRS ----------
+  // ======== MODIS / VIIRS ========
   const today = new Date();
   const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
   const iso = d=>d.toISOString().split('T')[0];
@@ -382,136 +417,74 @@ async function init() {
   document.getElementById('modisLayer').onchange = e => modis.show = e.target.checked;
   document.getElementById('viirsLayer').onchange = e => viirs.show = e.target.checked;
 
-  // ---------- Hotspots permanentes ----------
+  // ======== Loader y Carga de GeoJSON (Sin cambios) ========
+  const loader = document.createElement("div");
+  loader.id = "loadingOverlay";
+  loader.innerHTML = `<div class="spinner"></div><p>Cargando capa...</p>`;
+  Object.assign(loader.style,{display:"none",position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:"rgba(0,0,0,0.7)",color:"#fff",padding:"15px 25px",borderRadius:"10px",zIndex:"9999"});
+  document.body.appendChild(loader);
+  const style = document.createElement("style");
+  style.innerHTML = `.spinner{border:4px solid rgba(255,255,255,0.3);border-top:4px solid #ff6600;border-radius:50%;width:30px;height:30px;animation:spin 0.8s linear infinite;margin:0 auto 10px}@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}`;
+  document.head.appendChild(style);
 
-// ---------- 🔥 Explorador de Hotspots Permanentes (Optimizado) ----------
-
-// Elemento de carga (spinner)
-const loader = document.createElement("div");
-loader.id = "loadingOverlay";
-loader.innerHTML = `
-  <div class="spinner"></div>
-  <p>Cargando capa...</p>
-`;
-Object.assign(loader.style, {
-  display: "none",
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  background: "rgba(0,0,0,0.7)",
-  color: "#fff",
-  padding: "15px 25px",
-  borderRadius: "10px",
-  zIndex: "9999",
-  textAlign: "center",
-  fontFamily: "Arial, sans-serif"
-});
-document.body.appendChild(loader);
-
-// Animación del spinner
-const style = document.createElement("style");
-style.innerHTML = `
-  .spinner {
-    border: 4px solid rgba(255,255,255,0.3);
-    border-top: 4px solid #ff6600;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 10px auto;
-  }
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-document.head.appendChild(style);
-
-// Función genérica para cargar GeoJSON con ícono SVG o PNG
-async function loadGeoJSON(url, iconUrl, color) {
-  try {
-    loader.style.display = "block"; // Mostrar spinner
-    const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround: true });
-    viewer.dataSources.add(ds);
-
-    ds.entities.values.forEach(ent => {
-      ent.billboard = new Cesium.BillboardGraphics({
-        image: iconUrl,
-        scale: 1.2,
-        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+  async function loadGeoJSON(url, iconUrl, color) {
+    try {
+      loader.style.display = "block";
+      const ds = await Cesium.GeoJsonDataSource.load(url, { clampToGround: true });
+      viewer.dataSources.add(ds);
+      ds.entities.values.forEach(ent => {
+        ent.billboard = new Cesium.BillboardGraphics({
+          image: iconUrl, scale: 1.2, verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+        });
+        ent.label = new Cesium.LabelGraphics({
+          text: ent.properties?.name?.getValue() || "",
+          font: "12px sans-serif",
+          fillColor: color.withAlpha(0.9),
+          pixelOffset: new Cesium.Cartesian2(0, -25)
+        });
       });
-
-      ent.label = new Cesium.LabelGraphics({
-        text: ent.properties?.name?.getValue() || "",
-        font: "12px sans-serif",
-        fillColor: color.withAlpha(0.9),
-        pixelOffset: new Cesium.Cartesian2(0, -25),
-        showBackground: false
-      });
-    });
-
-    return ds;
-  } catch (e) {
-    console.error(`❌ Error cargando ${url}:`, e);
-    alert(`No se pudo cargar la capa: ${url}`);
-    return null;
-  } finally {
-    loader.style.display = "none"; // Ocultar spinner
+      return ds;
+    } catch (e) {
+      console.error(`❌ Error cargando ${url}:`, e);
+      alert(`No se pudo cargar la capa: ${url}`);
+      return null;
+    } finally {
+      loader.style.display = "none";
+    }
   }
-}
 
-// Configuración de capas (lazy loading)
-const layerConfigs = {
-  flareLayer:  { file: "data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", color: Cesium.Color.RED },
-  cementLayer: { file: "data/cement_plants.geojson", color: Cesium.Color.ORANGE },
-  plantLayer:  { file: "data/global_power_plant_database.geojson", color: Cesium.Color.YELLOW },
-  chimLayer:   { file: "data/SFI-Global-Steel-Database-July-2021.geojson", color: Cesium.Color.CYAN },
-  etilLayer:   { file: "data/SFI_ALD_Global_Ethylene_Database_October_2024.geojson", color: Cesium.Color.MAGENTA }
-};
+  const layerConfigs = {
+    flareLayer:  { file: "data/Nonferrous_Metal_Processing_Plants_7269968143129708118.geojson", color: Cesium.Color.RED },
+    cementLayer: { file: "data/cement_plants.geojson", color: Cesium.Color.ORANGE },
+    plantLayer:  { file: "data/global_power_plant_database.geojson", color: Cesium.Color.YELLOW },
+    chimLayer:   { file: "data/SFI-Global-Steel-Database-July-2021.geojson", color: Cesium.Color.CYAN },
+    etilLayer:   { file: "data/SFI_ALD_Global_Ethylene_Database_October_2024.geojson", color: Cesium.Color.MAGENTA }
+  };
 
-const fireIcon = "images/fire.png";
-const loadedLayers = {}; // almacenamiento en caché de capas ya cargadas
+  const fireIcon = "images/fire.png";
+  const loadedLayers = {};
 
-(async () => {
   for (const id in layerConfigs) {
     const checkbox = document.getElementById(id);
     const cfg = layerConfigs[id];
-
     checkbox.onchange = async e => {
       const checked = e.target.checked;
-
-      if (checked && !loadedLayers[id]) {
-        // Cargar la capa solo la primera vez
-        loadedLayers[id] = await loadGeoJSON(cfg.file, fireIcon, cfg.color);
-      }
-
-      if (loadedLayers[id]) {
-        loadedLayers[id].show = checked;
-      }
+      if (checked && !loadedLayers[id]) loadedLayers[id] = await loadGeoJSON(cfg.file, fireIcon, cfg.color);
+      if (loadedLayers[id]) loadedLayers[id].show = checked;
     };
-
-    // 🔹 Activar solo siderúrgicas (chimLayer)
     if (id === "chimLayer") {
       checkbox.checked = true;
       loadedLayers[id] = await loadGeoJSON(cfg.file, fireIcon, cfg.color);
-    } else {
-      checkbox.checked = false;
-    }
+    } else checkbox.checked = false;
   }
-})();
-
-
-
-  // ---------- Centros ----------
+  
+  // ======== ÓRBITAS (Sin cambios) =========
   const orbitalCenters = {
     california: { lon: -94.921584, lat: 29.373240, height: 700 },
-    australia:  { lon: 	150.88258, lat: -34.46915, height: 500 },
-    europa:     { lon: -5.7235501, lat: 43.5601143, height: 300 }
+    australia:  { lon: 150.88258, lat: -34.46915, height: 500 },
+    europa:     { lon: -5.7235501, lat: 43.5601143, height: 300 }
   };
-
-  // ---------- Órbita ----------
   let orbitalState = { running: false, intervalId: null };
 
   function drawOrbitCircle(center, radius) {
@@ -519,143 +492,320 @@ const loadedLayers = {}; // almacenamiento en caché de capas ya cargadas
     viewer.entities.add({
       id: 'orbitCircle',
       position: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height),
-      ellipse: {
-        semiMajorAxis: radius,
-        semiMinorAxis: radius,
-        height: center.height,
-        material: Cesium.Color.ORANGE.withAlpha(0.18),
-        outline: true,
-        outlineColor: Cesium.Color.ORANGE
-      }
+      ellipse: { semiMajorAxis: radius, semiMinorAxis: radius, height: center.height,
+        material: Cesium.Color.ORANGE.withAlpha(0.18), outline: true, outlineColor: Cesium.Color.ORANGE }
     });
   }
-
-// ... (código anterior)
 
   async function startOrbit(centerKey, params) {
     const center = orbitalCenters[centerKey];
     if (!center) return;
     drawOrbitCircle(center, params.radius);
-
     orbitalState.running = true;
     const { radius, duration, vAmp } = params;
-    // Aumentar steps para una órbita más suave
-    const steps = Math.max(120, Math.round(duration * 6)); 
+    const steps = Math.max(120, Math.round(duration * 6));
     const stepDuration = duration / steps;
-
-    // 1. FlyTo para acercarse al objetivo
     await viewer.camera.flyTo({
       destination: Cesium.Cartesian3.fromDegrees(center.lon, center.lat, center.height + radius * 1.5),
       duration: 1.2
     });
-
     let step = 0;
     orbitalState.intervalId = setInterval(() => {
-      if (!orbitalState.running) { clearInterval(orbitalState.intervalId); return; }
-      
+      if (!orbitalState.running) return;
       const angle = (2 * Math.PI * step) / steps;
-      
-      // Coordenadas de la cámara en la órbita (longitud, latitud)
       const offsetLon = (radius / 111000) * Math.cos(angle);
       const offsetLat = (radius / 111000) * Math.sin(angle);
-      
       const camLon = center.lon + offsetLon;
       const camLat = center.lat + offsetLat;
       const camHeight = center.height + vAmp * Math.sin(angle);
-      
       const cameraPosition = Cesium.Cartesian3.fromDegrees(camLon, camLat, camHeight);
-      
-      // CÁLCULO DEL HEADING (RUMBO) para mirar al centro:
       const heading = Math.atan2(center.lat - camLat, center.lon - camLon) + Cesium.Math.toRadians(90);
-
-      // USAR setView PARA MOVIMIENTO CONTINUO:
       viewer.camera.setView({
         destination: cameraPosition,
-        orientation: {
-          heading: heading,
-          pitch: Cesium.Math.toRadians(-20), // Inclinación hacia abajo
-          roll: 0
-        }
+        orientation: { heading: heading, pitch: Cesium.Math.toRadians(-20), roll: 0 }
       });
-      
       step = (step + 1) % steps;
-    }, stepDuration * 1000); 
+    }, stepDuration * 1000);
   }
 
   function stopOrbit() {
     orbitalState.running = false;
-    if (orbitalState.intervalId) clearInterval(orbitalState.intervalId);
+    clearInterval(orbitalState.intervalId);
     viewer.entities.removeById('orbitCircle');
-    // Mueve la cámara ligeramente para liberar el control
-    viewer.camera.flyTo({
-        destination: viewer.camera.position, 
-        duration: 0.5,
-        offset: new Cesium.HeadingPitchRange(0, 0, 1)
+  }
+
+  document.getElementById('startBtn').onclick = () => {
+    const key = document.getElementById('exampleSelect').value;
+    stopOrbit();
+    startOrbit(key, { radius: 300, duration: 30, vAmp: 30 });
+  };
+  document.getElementById('stopBtn').onclick = stopOrbit;
+
+  /* ---------------------------------------------------------------------- */
+  /* ---------------------- FUNCIONES DE VISTA Y LIMPIEZA ----------------- */
+  /* ---------------------------------------------------------------------- */
+
+  function drawBuffer(center, radiusKm) {
+    clearBuffer(); 
+    const radiusMeters = radiusKm * 1000;
+
+    currentBuffer = viewer.entities.add({
+      position: center,
+      name: `Buffer de ${radiusKm} km`,
+      ellipse: {
+        semiMajorAxis: radiusMeters,
+        semiMinorAxis: radiusMeters,
+        height: 0,
+        material: Cesium.Color.fromCssColorString('#ff6600').withAlpha(0.2), 
+        outline: true,
+        outlineColor: Cesium.Color.fromCssColorString('#ff6600').withAlpha(0.8),
+        outlineWidth: 3,
+        classificationType: Cesium.ClassificationType.BOTH, 
+      }
     });
   }
 
-  // --- UI Handlers (Depurado con parámetros fijos) ---
-  const startBtn = document.getElementById('startBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const exampleSelect = document.getElementById('exampleSelect');
+  function clearGraphics() {
+    nearestLines.forEach(line => viewer.entities.remove(line));
+    nearestLabels.forEach(label => viewer.entities.remove(label));
+    nearestLines = [];
+    nearestLabels = [];
+    clearBuffer();
+    lastProximityResults = []; 
+  }
   
-  // Valores fijos para la órbita (antes se leían de los inputs eliminados)
-  const ORBIT_PARAMS = {
-    radius: 300,
-    duration: 30,
-    vAmp: 30
-  };
-
-  startBtn.onclick = () => {
-    // 1. OBTENER la clave del selector
-    const key = exampleSelect.value;
-    
-    stopOrbit();
-    // 2. Usar valores fijos para los parámetros
-    startOrbit(key, ORBIT_PARAMS);
-  };
-  stopBtn.onclick = stopOrbit;
-
-// ... (resto del código)
-  // ---------- Panel de información ----------
-  const infoContent = document.getElementById('infoContent');
-  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-
-  handler.setInputAction(click => {
-    const picked = viewer.scene.pick(click.position);
-    if (Cesium.defined(picked) && picked.id && picked.id.properties) {
-      const props = picked.id.properties;
-      const rows = Object.keys(props).map(k => {
-        let val = props[k];
-        if (val && val.getValue) val = val.getValue();
-        return `<tr><th>${k}</th><td>${val}</td></tr>`;
-      }).join('');
-      infoContent.innerHTML = `<table>${rows}</table>`;
-    } else {
-      infoContent.innerHTML = "<em>Sin propiedades disponibles.</em>";
+  function clearBuffer() {
+    if (currentBuffer) {
+      viewer.entities.remove(currentBuffer);
+      currentBuffer = null;
     }
-  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  }
 
-  // ---------- Vista inicial ----------
-  viewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(-74.0, 4.0, 50000),
-    orientation: { heading: Cesium.Math.toRadians(25), pitch: Cesium.Math.toRadians(-20) },
-    duration: 2
-  });
+  function toggle2D() {
+    const btn = document.getElementById('toggle2DBtn');
+    if (viewer.scene.mode === Cesium.SceneMode.SCENE3D) {
+      viewer.scene.mode = Cesium.SceneMode.COLUMBUS_VIEW; 
+      btn.textContent = 'Volver a Vista 3D';
+    } else {
+      viewer.scene.mode = Cesium.SceneMode.SCENE3D;
+      btn.textContent = 'Cambiar a Vista 2D';
+    }
+  }
+
+
+  /* ---------------------------------------------------------------------- */
+  /* ---------------------- FUNCIONES DE PROXIMIDAD Y CSV ----------------- */
+  /* ---------------------------------------------------------------------- */
+
+  function exportToCsv(data) {
+    if (data.length === 0) {
+      alert("No hay resultados de Hotspots dentro del buffer para exportar. Haz clic en el mapa primero.");
+      return;
+    }
+
+    const headers = ["Rank", "Nombre_Hotspot", "Tipo_Hotspot", "Distancia_km", "Rumbo_grados", "Longitud", "Latitud"];
+
+    const csvRows = [headers.join(',')]; 
+    data.forEach((item, index) => {
+      const cartographic = Cesium.Cartographic.fromCartesian(item.position);
+      const row = [
+        index + 1, 
+        `"${item.entity.name || 'Sin nombre'}"`, 
+        `"${item.typeName}"`, 
+        (item.distance / 1000).toFixed(2), 
+        item.bearing.toFixed(0), 
+        Cesium.Math.toDegrees(cartographic.longitude).toFixed(6),
+        Cesium.Math.toDegrees(cartographic.latitude).toFixed(6)
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Proximidad_Hotspots_${new Date().toISOString().slice(0, 10)}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function calculateBearing(p1, p2) {
+    const ellipsoid = viewer.scene.globe.ellipsoid;
+    const c1 = ellipsoid.cartesianToCartographic(p1);
+    const c2 = ellipsoid.cartesianToCartographic(p2);
+
+    const lon1 = c1.longitude;
+    const lat1 = c1.latitude;
+    const lon2 = c2.longitude;
+    const lat2 = c2.latitude;
+
+    const dLon = lon2 - lon1;
+
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+
+    let bearingRad = Math.atan2(y, x);
+    let bearingDeg = Cesium.Math.toDegrees(bearingRad);
+
+    return (bearingDeg + 360) % 360; 
+  }
+
+
+ // =========================================================================
+// ======== MANEJADOR DE CLIC DEL MAPA (CORRECCIÓN FINAL DE ELEVACIÓN) ========
+// =========================================================================
+const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+
+handler.setInputAction(click => {
+    // 1. Limpiar elementos anteriores
+    clearGraphics(); 
+
+    const pickedPosition = viewer.scene.pickPosition(click.position);
+    if (!Cesium.defined(pickedPosition)) {
+      console.log("No se pudo identificar la posición en el terreno.");
+      return;
+    }
+
+    // A. Obtener el radio del buffer y dibujar el círculo
+    const bufferRadiusKm = parseFloat(document.getElementById('bufferRadius').value) || 10; 
+    drawBuffer(pickedPosition, bufferRadiusKm); 
+
+    const allEntities = [];
+    for (const id in loadedLayers) {
+      const ds = loadedLayers[id];
+      if (ds && ds.show) allEntities.push(...ds.entities.values);
+    }
+    if (allEntities.length === 0) {
+      console.log("No hay capas de Hotspots visibles para el análisis de proximidad.");
+      return;
+    }
+
+    const now = Cesium.JulianDate.now();
+    
+    // 2. Calcular distancias y filtrar por buffer
+    const proximityData = [];
+    const bufferRadiusMeters = bufferRadiusKm * 1000;
+
+    for (const entity of allEntities) {
+      if (!entity.position) continue;
+      const pos = entity.position.getValue(now);
+      const distance = Cesium.Cartesian3.distance(pickedPosition, pos);
+      
+      // FILTRO: Solo si está dentro del radio
+      if (distance > bufferRadiusMeters) continue; 
+      
+      let layerId = Object.keys(loadedLayers).find(id => loadedLayers[id] === entity.entityCollection.owner);
+      let typeName = document.getElementById(layerId)?.parentElement.querySelector('span')?.textContent || "Hotspot Industrial";
+      typeName = typeName.replace(/🏭/g, '').trim();
+
+      proximityData.push({
+        entity: entity,
+        position: pos,
+        distance: distance,
+        typeName: typeName
+      });
+    }
+
+    proximityData.sort((a, b) => a.distance - b.distance);
+    const top3 = proximityData.slice(0, 3);
+
+    // Almacenar resultados (incluyendo el cálculo de rumbo)
+    lastProximityResults = top3.map(data => {
+      data.bearing = calculateBearing(pickedPosition, data.position);
+      return data;
+    });
+    
+    // 3. Dibujar líneas y etiquetas
+    lastProximityResults.forEach((data, index) => {
+      const { entity, position, distance, typeName, bearing } = data; 
+
+      // ----------------------------------------------------
+      // 💡 CORRECCIÓN DE ELEVACIÓN
+      // ----------------------------------------------------
+      const HEIGHT_OFFSET = 50.0; // 50 metros de elevación
+
+      // 1. Elevar la posición del Hotspot
+      const hotspotCartographic = Cesium.Cartographic.fromCartesian(position);
+      const elevatedHotspotPosition = Cesium.Cartesian3.fromDegrees(
+        Cesium.Math.toDegrees(hotspotCartographic.longitude),
+        Cesium.Math.toDegrees(hotspotCartographic.latitude),
+        hotspotCartographic.height + HEIGHT_OFFSET
+      );
+
+      // 2. Elevar la posición de click (punto de inicio)
+      const pickedCartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
+      const elevatedPickedPosition = Cesium.Cartesian3.fromDegrees(
+        Cesium.Math.toDegrees(pickedCartographic.longitude),
+        Cesium.Math.toDegrees(pickedCartographic.latitude),
+        pickedCartographic.height + HEIGHT_OFFSET
+      );
+
+      // A. DIBUJAR LA LÍNEA CON FLECHA
+      const line = viewer.entities.add({
+        polyline: {
+          // Usamos las posiciones elevadas
+          positions: [elevatedPickedPosition, elevatedHotspotPosition],
+          width: LINE_WIDTH, 
+          material: new Cesium.PolylineArrowMaterialProperty(LINE_COLOR), 
+          // Esto es CLAVE para que el material PolylineArrow se dibuje
+          clampToGround: false, 
+        }
+      });
+      nearestLines.push(line);
+
+      // B. Crear la etiqueta
+      const midpoint = Cesium.Cartesian3.midpoint(elevatedPickedPosition, elevatedHotspotPosition, new Cesium.Cartesian3());
+      
+      const bearingStr = `${bearing.toFixed(0)}°`; 
+      const labelText = `[${index + 1}] ${typeName}\nDist: ${(distance/1000).toFixed(2)} km\nRumbo: ${bearingStr}`;
+
+      const label = viewer.entities.add({
+        position: midpoint, // Usamos el punto medio elevado
+        label: {
+          text: labelText,
+          font: '16px Arial, sans-serif', 
+          fillColor: Cesium.Color.WHITE,
+          backgroundColor: Cesium.Color.fromCssColorString('#121418').withAlpha(0.9),
+          showBackground: true,
+          pixelOffset: new Cesium.Cartesian2(0, -30), 
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          outlineColor: Cesium.Color.fromCssColorString('#ff6600'),
+          outlineWidth: 1.5,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY 
+        }
+      });
+      nearestLabels.push(label);
+
+      console.log(`[${index+1}] Más cercano: ${entity.name || "Sin nombre"} (${(distance/1000).toFixed(2)} km, ${bearingStr})`);
+    });
+
+    if (top3.length === 0) {
+      console.log(`No se encontraron Hotspots dentro del radio de ${bufferRadiusKm} km.`);
+    }
+
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  // MANEJO DE BOTONES
+  document.getElementById('exportCsvBtn').onclick = () => {
+    exportToCsv(lastProximityResults);
+  };
+  document.getElementById('clearGraphicsBtn').onclick = clearGraphics;
+  document.getElementById('toggle2DBtn').onclick = toggle2D; // NUEVO EVENTO
+
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(-74.0, 4.0, 50000),
+    orientation: { heading: Cesium.Math.toRadians(25), pitch: Cesium.Math.toRadians(-20) },
+    duration: 2
+  });
 }
-
 init();
 </script>
+
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
